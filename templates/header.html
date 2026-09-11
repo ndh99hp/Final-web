@@ -1,0 +1,12 @@
+<header>
+    <div><a href="/">🛒 Shop Admin</a></div>
+    <nav>
+        {% if user.is_authenticated %}
+            <span>Xin chào, {{ user.username }}</span>
+            <a href="{% url 'logout' %}">Đăng xuất</a>
+        {% else %}
+            <a href="{% url 'login' %}">Đăng nhập</a>
+            <a href="{% url 'register' %}">Đăng ký</a>
+        {% endif %}
+    </nav>
+</header>

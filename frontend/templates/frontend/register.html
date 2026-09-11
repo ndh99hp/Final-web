@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Đăng ký{% endblock %}
+
+{% block styles %}
+<link rel="stylesheet" href="{% static 'frontend/css/auth.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="form-box">
+    <h2>Đăng ký</h2>
+
+    {% if messages %}
+        {% for message in messages %}
+            <p class="{% if message.tags == 'error' %}msg-error{% else %}msg-success{% endif %}">
+                {{ message }}
+            </p>
+        {% endfor %}
+    {% endif %}
+
+    <form method="POST">
+        {% csrf_token %}
+        <input type="text" name="username" placeholder="Tên đăng nhập" required>
+        <input type="email" name="email" placeholder="Email" required>
+        <input type="password" name="password" placeholder="Mật khẩu" required>
+        <input type="password" name="password2" placeholder="Nhập lại mật khẩu" required>
+        <select name="id_country">
+            <option value="">-- Chọn quốc gia (không bắt buộc) --</option>
+            {% for country in countries %}
+                <option value="{{ country.id }}">{{ country.name }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit">Đăng ký</button>
+    </form>
+
+    <p class="link">Đã có tài khoản? <a href="{% url 'login' %}">Đăng nhập</a></p>
+</div>
+{% endblock %}

@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Blog{% endblock %}
+
+{% block content %}
+<div class="blog-list">
+    <h1>Bài viết mới nhất</h1>
+    {% for blog in blogs %}
+        <div class="blog-card">
+            {% if blog.image %}
+                <img src="{{ blog.image.url }}" alt="{{ blog.title }}">
+            {% endif %}
+            <h3><a href="{% url 'blog_detail' blog.slug %}">{{ blog.title }}</a></h3>
+            <p>{{ blog.description }}</p>
+            <small>Đăng bởi {{ blog.author }} - {{ blog.created_at|date:"d/m/Y" }}</small>
+        </div>
+    {% empty %}
+        <p>Chưa có bài viết nào.</p>
+    {% endfor %}
+</div>
+{% endblock %}
