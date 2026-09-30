@@ -28,6 +28,13 @@ class Comment(models.Model):
         null=True,
         related_name='comments'
     )
+    parent = models.ForeignKey(
+        'self',
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name='replies'
+    )
     name = models.CharField(max_length=100)
     cmt = models.TextField()
     avatar = models.ImageField(upload_to='comment_avatars/', null=True, blank=True)
@@ -35,3 +42,14 @@ class Comment(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     def __str__(self):
         return f"{self.name} - {self.cmt[:30]}"
+class Rate(models.Model):
+    id_blog = models.ForeignKey(Blog, on_delete=models.CASCADE, related_name='rates')
+    id_user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    rate = models.PositiveSmallIntegerField()
+    time = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('id_blog', 'id_user')
+
+    def __str__(self):
+        return f"{self.id_user} - {self.id_blog} - {self.rate} sao"

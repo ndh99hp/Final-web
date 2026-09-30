@@ -1,27 +1,233 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}{{ blog.title }}{% endblock %}
 
 {% block content %}
-<article class="blog-detail">
-    <h1>{{ blog.title }}</h1>
-    <small>Đăng bởi {{ blog.author }} - {{ blog.created_at|date:"d/m/Y" }}</small>
-    {% if blog.image %}
-        <img src="{{ blog.image.url }}" alt="{{ blog.title }}">
-    {% endif %}
-    <div class="content">
-        {{ blog.content|safe }}
-    </div>
-</article>
+<section>
+    <div class="container">
+        <div class="row">
+            <div class="col-sm-3">
+                <div class="left-sidebar">
+                    <h2>Danh mục</h2>
+                    <p style="padding: 15px; color: #999;">(Sẽ kết nối với sản phẩm sau)</p>
+                </div>
+            </div>
+            <div class="col-sm-9">
+                <div class="blog-post-area">
+                    <h2 class="title text-center">{{ blog.title }}</h2>
+                    <div class="single-blog-post">
+                        <div class="post-meta">
+                            <ul>
+                                <li><i class="fa fa-user"></i> {{ blog.author }}</li>
+                                <li><i class="fa fa-calendar"></i> {{ blog.created_at|date:"d M, Y" }}</li>
+                            </ul>
+                        </div>
+                        {% if blog.image %}
+                            <img src="{{ blog.image.url }}" alt="{{ blog.title }}">
+                        {% endif %}
+                        <div class="content" style="margin-top:15px;">
+                            {{ blog.content|safe }}
+                        </div>
+                    </div>
+                </div>
 
-<section class="comments">
-    <h3>Bình luận ({{ comments.count }})</h3>
-    {% for cmt in comments %}
-        <div class="comment">
-            <strong>{{ cmt.name }}</strong>: {{ cmt.cmt }}
+                <div class="post-navigation" style="margin-top:20px; overflow:hidden;">
+                            {% if prev_blog %}
+                                <a href="{% url 'blog_detail' prev_blog.slug %}" class="btn btn-default">&laquo; Bài trước</a>
+                            {% endif %}
+                            {% if next_blog %}
+                                <a href="{% url 'blog_detail' next_blog.slug %}" class="btn btn-default pull-right">Bài sau &raquo;</a>
+                            {% endif %}
+                </div>
+                <div class="blog-rate" style="margin: 20px 0; padding: 15px; background:#f9f9f9; border:1px solid #eee;">
+                    <strong>Đánh giá bài viết:</strong>
+                    <div id="star-widget" data-slug="{{ blog.slug }}" data-rated="{% if user_rating %}1{% else %}0{% endif %}" style="margin-top:8px;">
+                        {% for i in "12345" %}
+                            <i class="fa {% if user_rating and forloop.counter <= user_rating %}fa-star{% elif not user_rating and forloop.counter <= avg_rating %}fa-star{% else %}fa-star-o{% endif %} star-item"
+                               data-value="{{ forloop.counter }}"
+                               style="cursor:pointer; color:#f0ad4e; font-size:20px; margin-right:3px;"></i>
+                        {% endfor %}
+                        <span id="rate-average" style="margin-left:8px; color:#c89805; font-weight:bold;">
+                            {{ avg_rating_raw }}/5 ({{ rate_count }} đánh giá)
+                        </span>
+                    </div>
+                    <div id="rate-message" style="margin-top:8px; font-size:13px;"></div>
+                </div>
+
+                <div class="response-area">
+                        <h2 id="comment-count-title">{{ comments.count }} BÌNH LUẬN</h2>
+                        <ul class="media-list" id="comments-list">
+                        {% for comment in comments %}
+                            {% include 'blog/comment_node.html' with comment=comment %}
+                        {% empty %}
+                            <p>Chưa có bình luận nào.</p>
+                        {% endfor %}
+                    </ul>
+                </div>
+
+                <div class="replay-box">
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <h2>Viết bình luận</h2>
+                            {% if user.is_authenticated %}
+                            <form class="new-comment-form">
+                                <div class="text-area">
+                                     <textarea name="cmt" rows="6" class="form-control" placeholder="Nội dung bình luận..." required></textarea>
+                                     <button type="submit" class="btn btn-primary" style="margin-top:10px;">Gửi bình luận</button>
+                                </div>
+                            </form>
+                            {% else %}
+                                <p><a href="{% url 'login' %}">Đăng nhập</a> để bình luận.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-    {% empty %}
-        <p>Chưa có bình luận nào.</p>
-    {% endfor %}
+    </div>
 </section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+var AVATAR_URL = "{% static 'images/blog/man-one.jpg' %}";
+var CSRF_TOKEN = "{{ csrf_token }}";
+var COMMENT_AJAX_URL = "{% url 'add_comment_ajax' blog.slug %}";
+var RATE_AJAX_URL = "{% url 'rate_blog' blog.slug %}";
+
+function escapeHtml(text) {
+    var div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+function buildCommentHtml(c) {
+    var indent = c.level * 10;
+    var second = c.level > 0 ? 'second-media' : '';
+    var html = '<li class="media ' + second + '" id="comment-' + c.id + '" style="margin-left:' + indent + 'px;">';
+    html += '<a class="pull-left" href="#"><img class="media-object" src="' + AVATAR_URL + '" alt=""></a>';
+    html += '<div class="media-body">';
+    html += '<ul class="sinlge-post-meta">';
+    html += '<li><i class="fa fa-user"></i> ' + escapeHtml(c.name) + '</li>';
+    html += '<li><i class="fa fa-clock-o"></i> ' + c.time + '</li>';
+    html += '<li><i class="fa fa-calendar"></i> ' + c.date + '</li>';
+    html += '</ul>';
+    html += '<p>' + escapeHtml(c.cmt) + '</p>';
+    html += '<a href="#" class="btn btn-primary reply-toggle" data-comment-id="' + c.id + '"><i class="fa fa-reply"></i> Trả lời</a>';
+    html += '<form class="reply-form" id="reply-form-' + c.id + '" style="display:none; margin-top:10px;">';
+    html += '<input type="hidden" name="parent_id" value="' + c.id + '">';
+    html += '<textarea name="cmt" rows="3" class="form-control" placeholder="Viết phản hồi..." required></textarea>';
+    html += '<button type="submit" class="btn btn-primary" style="margin-top:5px;">Gửi</button>';
+    html += '</form>';
+    html += '</div>';
+    html += '<ul class="media-list"></ul>';
+    html += '</li>';
+    return html;
+}
+
+$(document).ready(function() {
+    var checkLogin = "{{ user.is_authenticated|yesno:'true,false' }}";
+
+    // ===== 1. Toggle nút "Trả lời" =====
+    $(document).on('click', '.reply-toggle', function(e) {
+        e.preventDefault();
+        var id = $(this).data('comment-id');
+        $('#reply-form-' + id).toggle();
+    });
+
+    // ===== 2. Gửi comment/reply qua AJAX =====
+    $(document).on('submit', '.new-comment-form, .reply-form', function(e) {
+        e.preventDefault();
+
+        if (checkLogin !== 'true') {
+            alert('Vui lòng đăng nhập để bình luận.');
+            return;
+        }
+
+        var $form = $(this);
+        var cmtText = $form.find('textarea[name="cmt"]').val().trim();
+        var parentId = $form.find('input[name="parent_id"]').val() || '';
+
+        if (!cmtText) return;
+
+        $.ajax({
+            type: 'POST',
+            url: COMMENT_AJAX_URL,
+            headers: { "X-CSRFToken": CSRF_TOKEN },
+            data: { cmt: cmtText, parent_id: parentId },
+            success: function(data) {
+                if (data.success) {
+                    var html = buildCommentHtml(data.comment);
+                    if (parentId) {
+                        $('#comment-' + parentId + ' > ul.media-list').first().append(html);
+                        $form.hide();
+                    } else {
+                        $('#comments-list').prepend(html);
+                    }
+                    $form[0].reset();
+
+                    var $title = $('#comment-count-title');
+                    var current = parseInt($title.text()) || 0;
+                    $title.text((current + 1) + ' BÌNH LUẬN');
+                } else {
+                    alert(data.message);
+                }
+            },
+            error: function(xhr) {
+                var msg = 'Có lỗi xảy ra.';
+                if (xhr.status === 401) msg = 'Vui lòng đăng nhập để bình luận.';
+                else if (xhr.responseJSON && xhr.responseJSON.message) msg = xhr.responseJSON.message;
+                alert(msg);
+            }
+        });
+    });
+
+    // ===== 3. Đánh giá sao (Rate) qua AJAX =====
+    var alreadyRated = $('#star-widget').data('rated') == 1;
+    var slug = $('#star-widget').data('slug');
+
+    $('.star-item').click(function() {
+        if (checkLogin !== 'true') {
+            $('#rate-message').text('Vui lòng đăng nhập để đánh giá.').css('color', '#e74c3c');
+            return;
+        }
+        if (alreadyRated) {
+            $('#rate-message').text('Bạn đã đánh giá bài viết này rồi.').css('color', '#e74c3c');
+            return;
+        }
+
+        var rateValue = $(this).data('value');
+
+        $.ajax({
+            type: 'POST',
+            headers: { "X-CSRFToken": CSRF_TOKEN },
+            url: RATE_AJAX_URL,
+            data: { rate: rateValue },
+            success: function(data) {
+                if (data.success) {
+                    $('.star-item').each(function() {
+                        if ($(this).data('value') <= data.your_rate) {
+                            $(this).removeClass('fa-star-o').addClass('fa-star');
+                        }
+                    });
+                    $('#rate-average').text(data.average_raw + '/5 (' + data.count + ' đánh giá)');
+                    $('#rate-message').text(data.message).css('color', '#2ecc71');
+                    alreadyRated = true;
+                    $('#star-widget').data('rated', 1);
+                } else {
+                    $('#rate-message').text(data.message).css('color', '#e74c3c');
+                }
+            },
+            error: function(xhr) {
+                var msg = 'Có lỗi xảy ra.';
+                if (xhr.responseJSON && xhr.responseJSON.message) {
+                    msg = xhr.responseJSON.message;
+                }
+                $('#rate-message').text(msg).css('color', '#e74c3c');
+            }
+        });
+    });
+});
+</script>
 {% endblock %}

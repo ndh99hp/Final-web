@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Đăng nhập{% endblock %}
+
+{% block content %}
+<section>
+    <div class="container" style="padding: 60px 0;">
+        <div class="row">
+            <div class="col-sm-6 col-sm-offset-3">
+                <div class="login-form" style="background:#fff; padding:30px; box-shadow:0 0 10px rgba(0,0,0,0.1);">
+                    <h2 class="text-center">Đăng nhập</h2>
+                    <form method="POST">
+                        {% csrf_token %}
+                        <input type="text" name="username" class="form-control" placeholder="Tên đăng nhập" required style="margin-bottom:15px;">
+                        <input type="password" name="password" class="form-control" placeholder="Mật khẩu" required style="margin-bottom:15px;">
+                        <button type="submit" class="btn btn-primary btn-block">Đăng nhập</button>
+                    </form>
+                    <p class="text-center" style="margin-top:15px;">Chưa có tài khoản? <a href="{% url 'register' %}">Đăng ký</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Danh sách User{% endblock %}
+
+{% block content %}
+<section>
+    <div class="container" style="padding: 40px 0;">
+        <div class="row">
+            <div class="col-sm-12">
+                <h2>Danh sách người dùng</h2>
+                <a href="{% url 'register_superuser' %}" class="btn btn-primary" style="margin-bottom:15px;">
+                    <i class="fa fa-plus"></i> Tạo Superuser mới
+                </a>
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Username</th>
+                            <th>Email</th>
+                            <th>Level</th>
+                            <th>Quốc gia</th>
+                            <th>Superuser?</th>
+                            <th>Ngày tạo</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for u in users %}
+                        <tr>
+                            <td>{{ u.id }}</td>
+                            <td>{{ u.username }}</td>
+                            <td>{{ u.email }}</td>
+                            <td>{{ u.get_level_display }}</td>
+                            <td>{{ u.id_country|default:"—" }}</td>
+                            <td>
+                                {% if u.is_superuser %}
+                                    <span class="label label-success">Có</span>
+                                {% else %}
+                                    <span class="label label-default">Không</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ u.date_joined|date:"d/m/Y" }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="7">Chưa có user nào.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

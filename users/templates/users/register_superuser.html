@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Tạo Superuser{% endblock %}
+
+{% block content %}
+<section>
+    <div class="container" style="padding: 60px 0;">
+        <div class="row">
+            <div class="col-sm-6 col-sm-offset-3">
+                <div class="register-form" style="background:#fff; padding:30px; box-shadow:0 0 10px rgba(0,0,0,0.1);">
+                    <h2 class="text-center">Tạo tài khoản Superuser</h2>
+                    <form method="POST" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <label>Username:</label>
+                        <input type="text" name="username" class="form-control" required style="margin-bottom:15px;">
+                        <label>Email:</label>
+                        <input type="email" name="email" class="form-control" required style="margin-bottom:15px;">
+                        <label>Password:</label>
+                        <input type="password" name="password" class="form-control" required style="margin-bottom:15px;">
+                        <label>Confirm password:</label>
+                        <input type="password" name="password2" class="form-control" required style="margin-bottom:15px;">
+                        <label>Avatar:</label>
+                        <input type="file" name="avatar" accept="image/*" style="margin-bottom:15px;">
+                        <label>First name:</label>
+                        <input type="text" name="first_name" class="form-control" style="margin-bottom:15px;">
+                        <label>Last name:</label>
+                        <input type="text" name="last_name" class="form-control" style="margin-bottom:15px;">
+                        <label>Id country:</label>
+                        <select name="id_country" class="form-control" style="margin-bottom:15px;">
+                            <option value="">------</option>
+                            {% for country in countries %}
+                                <option value="{{ country.id }}">{{ country.name }}</option>
+                            {% endfor %}
+                        </select>
+                        <button type="submit" class="btn btn-primary btn-block">Tạo Superuser</button>
+                    </form>
+                    <p class="text-center" style="margin-top:15px;"><a href="{% url 'list_users' %}">← Quay lại danh sách</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

@@ -1,3 +1,47 @@
-<footer>
-    <p>&copy; 2026 Đồ Án Web Bao Vic. All rights reserved.</p>
+{% load static %}
+<footer id="footer">
+    <div class="footer-widget">
+        <div class="container">
+            <div class="row">
+                <div class="col-sm-3">
+                    <div class="companyinfo">
+                        <h2><span>e</span>-shopper</h2>
+                        <p>Đồ án Web Bao Vic - Trang thương mại điện tử</p>
+                    </div>
+                </div>
+                <div class="col-sm-3">
+                    <div class="single-widget">
+                        <h2>Dịch vụ</h2>
+                        <ul class="nav nav-pills nav-stacked">
+                            <li><a href="">Trợ giúp trực tuyến</a></li>
+                            <li><a href="">Liên hệ</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="col-sm-3">
+                    <div class="single-widget">
+                        <h2>Chính sách</h2>
+                        <ul class="nav nav-pills nav-stacked">
+                            <li><a href="">Điều khoản sử dụng</a></li>
+                            <li><a href="">Chính sách bảo mật</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="col-sm-3">
+                    <div class="address">
+                        <img src="{% static 'images/home/map.png' %}" alt="" />
+                        <p>505 S Atlantic Ave Virginia Beach, VA</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer-bottom">
+        <div class="container">
+            <div class="row">
+                <p class="pull-left">Copyright &copy; 2026 Đồ Án Web Bao Vic. All rights reserved.</p>
+            </div>
+        </div>
+    </div>
 </footer>

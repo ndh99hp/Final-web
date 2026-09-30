@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Tài khoản của tôi{% endblock %}
+
+{% block content %}
+<section>
+    <div class="container" style="padding:40px 0;">
+        <h2 class="text-center" style="margin-bottom:30px;">ACCOUNT</h2>
+        <div class="row">
+            <div class="col-sm-3">
+                {% include 'users/account_sidebar.html' %}
+            </div>
+            <div class="col-sm-9">
+                <div style="background:#fff; padding:30px; box-shadow:0 0 10px rgba(0,0,0,0.1);">
+                    <h3>Cập nhật thông tin</h3>
+                    <form method="POST" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <label>Họ:</label>
+                        <input type="text" name="first_name" class="form-control" value="{{ user.first_name }}" style="margin-bottom:15px;">
+                        <label>Tên:</label>
+                        <input type="text" name="last_name" class="form-control" value="{{ user.last_name }}" style="margin-bottom:15px;">
+                        <label>Email:</label>
+                        <input type="email" name="email" class="form-control" value="{{ user.email }}" required style="margin-bottom:15px;">
+                        <label>Mật khẩu mới (để trống nếu không đổi):</label>
+                        <input type="password" name="password" class="form-control" style="margin-bottom:15px;">
+                        <label>Địa chỉ:</label>
+                        <input type="text" name="address" class="form-control" value="{{ user.address|default:'' }}" style="margin-bottom:15px;">
+                        <label>Quốc gia:</label>
+                        <select name="id_country" class="form-control" style="margin-bottom:15px;">
+                            <option value="">------</option>
+                            {% for country in countries %}
+                                <option value="{{ country.id }}" {% if user.id_country_id == country.id %}selected{% endif %}>{{ country.name }}</option>
+                            {% endfor %}
+                        </select>
+                        <label>Số điện thoại:</label>
+                        <input type="text" name="phone" class="form-control" value="{{ user.phone|default:'' }}" style="margin-bottom:15px;">
+                        <label>Avatar:</label>
+                        {% if user.avatar %}
+                            <div style="margin-bottom:10px;"><img src="{{ user.avatar.url }}" style="width:80px; height:80px; object-fit:cover; border-radius:50%;"></div>
+                        {% endif %}
+                        <input type="file" name="avatar" accept="image/*" style="margin-bottom:15px;">
+                        <button type="submit" class="btn btn-primary">Cập nhật</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

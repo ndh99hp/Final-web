@@ -4,19 +4,58 @@
 {% block title %}Blog{% endblock %}
 
 {% block content %}
-<div class="blog-list">
-    <h1>Bài viết mới nhất</h1>
-    {% for blog in blogs %}
-        <div class="blog-card">
-            {% if blog.image %}
-                <img src="{{ blog.image.url }}" alt="{{ blog.title }}">
-            {% endif %}
-            <h3><a href="{% url 'blog_detail' blog.slug %}">{{ blog.title }}</a></h3>
-            <p>{{ blog.description }}</p>
-            <small>Đăng bởi {{ blog.author }} - {{ blog.created_at|date:"d/m/Y" }}</small>
+<section>
+    <div class="container">
+        <div class="row">
+            <div class="col-sm-3">
+                <div class="left-sidebar">
+                    <h2>Danh mục</h2>
+                    <p style="padding: 15px; color: #999;">(Sẽ kết nối với sản phẩm sau khi hoàn thành app Product)</p>
+                </div>
+            </div>
+            <div class="col-sm-9">
+                <div class="blog-post-area">
+                    <h2 class="title text-center">Bài viết mới nhất</h2>
+
+                    {% for blog in blogs %}
+                    <div class="single-blog-post">
+                        <h3><a href="{% url 'blog_detail' blog.slug %}">{{ blog.title }}</a></h3>
+                        <div class="post-meta">
+                            <ul>
+                                <li><i class="fa fa-user"></i> {{ blog.author }}</li>
+                                <li><i class="fa fa-calendar"></i> {{ blog.created_at|date:"d M, Y" }}</li>
+                            </ul>
+                        </div>
+                        <a href="{% url 'blog_detail' blog.slug %}">
+                            {% if blog.image %}
+                                <img src="{{ blog.image.url }}" alt="{{ blog.title }}">
+                            {% else %}
+                                <img src="{% static 'images/blog/blog-one.jpg' %}" alt="{{ blog.title }}">
+                            {% endif %}
+                        </a>
+                        <p>{{ blog.description|truncatewords:40 }}</p>
+                        <a class="btn btn-primary" href="{% url 'blog_detail' blog.slug %}">Đọc thêm</a>
+                    </div>
+                    {% empty %}
+                        <p class="text-center">Chưa có bài viết nào.</p>
+                    {% endfor %}
+                    
+                    {% if blogs.has_other_pages %}
+                    <nav>
+                        <ul class="pagination">
+                            {% if blogs.has_previous %}
+                                <li><a href="?page={{ blogs.previous_page_number }}">&laquo; Trước</a></li>
+                            {% endif %}
+                            <li class="active"><span>Trang {{ blogs.number }} / {{ blogs.paginator.num_pages }}</span></li>
+                            {% if blogs.has_next %}
+                                <li><a href="?page={{ blogs.next_page_number }}">Sau &raquo;</a></li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                    {% endif %}
+                </div>
+            </div>
         </div>
-    {% empty %}
-        <p>Chưa có bài viết nào.</p>
-    {% endfor %}
-</div>
+    </div>
+</section>
 {% endblock %}

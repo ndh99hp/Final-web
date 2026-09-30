@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<section>
+    <div class="container" style="padding:40px 0;">
+        <h2 class="text-center" style="margin-bottom:30px;">ACCOUNT</h2>
+        <div class="row">
+            <div class="col-sm-3">
+                {% include 'users/account_sidebar.html' %}
+            </div>
+            <div class="col-sm-9">
+                <div style="background:#fff; padding:30px; box-shadow:0 0 10px rgba(0,0,0,0.1);">
+                    <h3>{{ title }}</h3>
+                    <p style="color:#999;">{{ note }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

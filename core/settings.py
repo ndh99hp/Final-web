@@ -39,7 +39,7 @@ INSTALLED_APPS = [
     #app tạo
     'users',
     'blog',
-    'frontend',
+    'product',
 ]
 
 MIDDLEWARE = [

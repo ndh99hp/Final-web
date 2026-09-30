@@ -1,0 +1,31 @@
+{% load static %}
+<li class="media {% if comment.level > 0 %}second-media{% endif %}" id="comment-{{ comment.id }}" style="margin-left: {{ comment.level|add:0 }}0px;">
+    <a class="pull-left" href="#">
+        <img class="media-object" src="{% static 'images/blog/man-one.jpg' %}" alt="">
+    </a>
+    <div class="media-body">
+        <ul class="sinlge-post-meta">
+            <li><i class="fa fa-user"></i> {{ comment.name }}</li>
+            <li><i class="fa fa-clock-o"></i> {{ comment.created_at|date:"H:i" }}</li>
+            <li><i class="fa fa-calendar"></i> {{ comment.created_at|date:"d M, Y" }}</li>
+        </ul>
+        <p>{{ comment.cmt }}</p>
+
+        {% if user.is_authenticated %}
+            <a href="#" class="btn btn-primary reply-toggle" data-comment-id="{{ comment.id }}">
+                <i class="fa fa-reply"></i> Trả lời
+            </a>
+            <form class="reply-form" id="reply-form-{{ comment.id }}" style="display:none; margin-top:10px;">
+                <input type="hidden" name="parent_id" value="{{ comment.id }}">
+                <textarea name="cmt" rows="3" class="form-control" placeholder="Viết phản hồi..." required></textarea>
+                <button type="submit" class="btn btn-primary" style="margin-top:5px;">Gửi</button>
+            </form>
+        {% endif %}
+    </div>
+
+    <ul class="media-list">
+        {% for reply in comment.replies.all %}
+            {% include 'blog/comment_node.html' with comment=reply %}
+        {% endfor %}
+    </ul>
+</li>

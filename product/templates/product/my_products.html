@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% block title %}Sản phẩm của tôi{% endblock %}
+
+{% block content %}
+<section>
+    <div class="container" style="padding: 40px 0;">
+        <h2>Sản phẩm của tôi</h2>
+        <a href="{% url 'product_create' %}" class="btn btn-primary">+ Thêm sản phẩm</a>
+
+        <table class="table table-bordered" style="margin-top: 20px;">
+            <tr>
+                <th>Ảnh</th>
+                <th>Tên</th>
+                <th>Giá</th>
+                <th>Hành động</th>
+            </tr>
+            {% for p in products %}
+            <tr>
+                <td><img src="{{ p.image.url }}" style="width:60px; height:60px; object-fit:cover;"></td>
+                <td>{{ p.title }}</td>
+                <td>${{ p.price }}</td>
+                <td>
+                    <a href="{% url 'edit_product' p.id %}" class="btn btn-default btn-sm">Sửa</a>
+                    <a href="{% url 'delete_product' p.id %}" class="btn btn-danger btn-sm">Xóa</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="4">Bạn chưa có sản phẩm nào.</td></tr>
+            {% endfor %}
+        </table>
+    </div>
+</section>
+{% endblock %}
