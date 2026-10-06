@@ -107,6 +107,9 @@ def add_comment_ajax(request, slug):
         level=level,
         parent=parent,
     )
+    avatar_url = '/static/images/blog/man-one.jpg'
+    if request.user.avatar:
+        avatar_url = request.user.avatar.url
 
     return JsonResponse({
         'success': True,
@@ -119,5 +122,6 @@ def add_comment_ajax(request, slug):
             'parent_id': parent.id if parent else None,
             'time': comment.created_at.strftime('%H:%M'),
             'date': comment.created_at.strftime('%d %m, %Y'),
+            'avatar_url': avatar_url,
         }
     })

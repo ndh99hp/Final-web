@@ -22,6 +22,7 @@
                         <h3><a href="{% url 'blog_detail' blog.slug %}">{{ blog.title }}</a></h3>
                         <div class="post-meta">
                             <ul>
+                                <li><strong>ID: {{ blog.id }}</strong></li>
                                 <li><i class="fa fa-user"></i> {{ blog.author }}</li>
                                 <li><i class="fa fa-calendar"></i> {{ blog.created_at|date:"d M, Y" }}</li>
                             </ul>

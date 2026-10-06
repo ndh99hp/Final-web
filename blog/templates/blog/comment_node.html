@@ -1,7 +1,11 @@
 {% load static %}
 <li class="media {% if comment.level > 0 %}second-media{% endif %}" id="comment-{{ comment.id }}" style="margin-left: {{ comment.level|add:0 }}0px;">
     <a class="pull-left" href="#">
-        <img class="media-object" src="{% static 'images/blog/man-one.jpg' %}" alt="">
+        {% if comment.id_user.avatar %}
+            <img class="media-object" src="{{ comment.id_user.avatar.url }}" alt="">
+        {% else %}
+            <img class="media-object" src="{% static 'images/blog/man-one.jpg' %}" alt="">
+        {% endif %}
     </a>
     <div class="media-body">
         <ul class="sinlge-post-meta">

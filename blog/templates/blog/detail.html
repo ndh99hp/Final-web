@@ -19,12 +19,13 @@
                     <div class="single-blog-post">
                         <div class="post-meta">
                             <ul>
+                                <li><strong>ID: {{ blog.id }}</strong></li>
                                 <li><i class="fa fa-user"></i> {{ blog.author }}</li>
                                 <li><i class="fa fa-calendar"></i> {{ blog.created_at|date:"d M, Y" }}</li>
                             </ul>
                         </div>
                         {% if blog.image %}
-                            <img src="{{ blog.image.url }}" alt="{{ blog.title }}">
+                        <img src="{{ blog.image.url }}" alt="{{ blog.title }}">
                         {% endif %}
                         <div class="content" style="margin-top:15px;">
                             {{ blog.content|safe }}
@@ -33,35 +34,38 @@
                 </div>
 
                 <div class="post-navigation" style="margin-top:20px; overflow:hidden;">
-                            {% if prev_blog %}
-                                <a href="{% url 'blog_detail' prev_blog.slug %}" class="btn btn-default">&laquo; Bài trước</a>
-                            {% endif %}
-                            {% if next_blog %}
-                                <a href="{% url 'blog_detail' next_blog.slug %}" class="btn btn-default pull-right">Bài sau &raquo;</a>
-                            {% endif %}
+                    {% if prev_blog %}
+                    <a href="{% url 'blog_detail' prev_blog.slug %}" class="btn btn-default">&laquo; Bài trước</a>
+                    {% endif %}
+                    {% if next_blog %}
+                    <a href="{% url 'blog_detail' next_blog.slug %}" class="btn btn-default pull-right">Bài sau
+                        &raquo;</a>
+                    {% endif %}
                 </div>
-                <div class="blog-rate" style="margin: 20px 0; padding: 15px; background:#f9f9f9; border:1px solid #eee;">
+                <div class="blog-rate"
+                    style="margin: 20px 0; padding: 15px; background:#f9f9f9; border:1px solid #eee;">
                     <strong>Đánh giá bài viết:</strong>
-                    <div id="star-widget" data-slug="{{ blog.slug }}" data-rated="{% if user_rating %}1{% else %}0{% endif %}" style="margin-top:8px;">
-                        {% for i in "12345" %}
-                            <i class="fa {% if user_rating and forloop.counter <= user_rating %}fa-star{% elif not user_rating and forloop.counter <= avg_rating %}fa-star{% else %}fa-star-o{% endif %} star-item"
-                               data-value="{{ forloop.counter }}"
-                               style="cursor:pointer; color:#f0ad4e; font-size:20px; margin-right:3px;"></i>
-                        {% endfor %}
-                        <span id="rate-average" style="margin-left:8px; color:#c89805; font-weight:bold;">
-                            {{ avg_rating_raw }}/5 ({{ rate_count }} đánh giá)
-                        </span>
+                    <div class="rate" id="star-widget" data-slug="{{ blog.slug }}"
+                        data-rated="{% if user_rating %}1{% else %}0{% endif %}" style="margin-top:8px;">
+                        <div class="vote">
+                            <div class="star_1 ratings_stars {% if avg_rating >= 1 %}ratings_over{% endif %}"><input value="1" type="hidden"></div>
+                            <div class="star_2 ratings_stars {% if avg_rating >= 2 %}ratings_over{% endif %}"><input value="2" type="hidden"></div>
+                            <div class="star_3 ratings_stars {% if avg_rating >= 3 %}ratings_over{% endif %}"><input value="3" type="hidden"></div>
+                            <div class="star_4 ratings_stars {% if avg_rating >= 4 %}ratings_over{% endif %}"><input value="4" type="hidden"></div>
+                            <div class="star_5 ratings_stars {% if avg_rating >= 5 %}ratings_over{% endif %}"><input value="5" type="hidden"></div>
+                            <span class="rate-np" id="rate-average">{{ avg_rating_raw }}/5 ({{ rate_count }})</span>
+                        </div>
                     </div>
                     <div id="rate-message" style="margin-top:8px; font-size:13px;"></div>
                 </div>
 
                 <div class="response-area">
-                        <h2 id="comment-count-title">{{ comments.count }} BÌNH LUẬN</h2>
-                        <ul class="media-list" id="comments-list">
+                    <h2 id="comment-count-title">{{ comments.count }} BÌNH LUẬN</h2>
+                    <ul class="media-list" id="comments-list">
                         {% for comment in comments %}
-                            {% include 'blog/comment_node.html' with comment=comment %}
+                        {% include 'blog/comment_node.html' with comment=comment %}
                         {% empty %}
-                            <p>Chưa có bình luận nào.</p>
+                        <p>Chưa có bình luận nào.</p>
                         {% endfor %}
                     </ul>
                 </div>
@@ -73,12 +77,14 @@
                             {% if user.is_authenticated %}
                             <form class="new-comment-form">
                                 <div class="text-area">
-                                     <textarea name="cmt" rows="6" class="form-control" placeholder="Nội dung bình luận..." required></textarea>
-                                     <button type="submit" class="btn btn-primary" style="margin-top:10px;">Gửi bình luận</button>
+                                    <textarea name="cmt" rows="6" class="form-control"
+                                        placeholder="Nội dung bình luận..." required></textarea>
+                                    <button type="submit" class="btn btn-primary" style="margin-top:10px;">Gửi bình
+                                        luận</button>
                                 </div>
                             </form>
                             {% else %}
-                                <p><a href="{% url 'login' %}">Đăng nhập</a> để bình luận.</p>
+                            <p><a href="{% url 'login' %}">Đăng nhập</a> để bình luận.</p>
                             {% endif %}
                         </div>
                     </div>
@@ -106,7 +112,7 @@ function buildCommentHtml(c) {
     var indent = c.level * 10;
     var second = c.level > 0 ? 'second-media' : '';
     var html = '<li class="media ' + second + '" id="comment-' + c.id + '" style="margin-left:' + indent + 'px;">';
-    html += '<a class="pull-left" href="#"><img class="media-object" src="' + AVATAR_URL + '" alt=""></a>';
+    html += '<a class="pull-left" href="#"><img class="media-object" src="' + c.avatar_url + '" alt=""></a>';
     html += '<div class="media-body">';
     html += '<ul class="sinlge-post-meta">';
     html += '<li><i class="fa fa-user"></i> ' + escapeHtml(c.name) + '</li>';
@@ -183,11 +189,22 @@ $(document).ready(function() {
         });
     });
 
-    // ===== 3. Đánh giá sao (Rate) qua AJAX =====
+    // ===== 3. Đánh giá sao (Rate), đúng code gốc thầy đưa (rate.zip) =====
     var alreadyRated = $('#star-widget').data('rated') == 1;
     var slug = $('#star-widget').data('slug');
 
-    $('.star-item').click(function() {
+    // Hiệu ứng khi rê chuột qua (sao "chạy theo" chuột)
+    $('.ratings_stars').hover(
+        function() {
+            $(this).prevAll().addBack().addClass('ratings_hover');
+        },
+        function() {
+            $(this).prevAll().addBack().removeClass('ratings_hover');
+        }
+    );
+
+    // Khi bấm vào 1 ngôi sao
+    $('.ratings_stars').click(function() {
         if (checkLogin !== 'true') {
             $('#rate-message').text('Vui lòng đăng nhập để đánh giá.').css('color', '#e74c3c');
             return;
@@ -197,7 +214,7 @@ $(document).ready(function() {
             return;
         }
 
-        var rateValue = $(this).data('value');
+        var rateValue = $(this).find('input').val();
 
         $.ajax({
             type: 'POST',
@@ -206,12 +223,14 @@ $(document).ready(function() {
             data: { rate: rateValue },
             success: function(data) {
                 if (data.success) {
-                    $('.star-item').each(function() {
-                        if ($(this).data('value') <= data.your_rate) {
-                            $(this).removeClass('fa-star-o').addClass('fa-star');
+                    $('.ratings_stars').removeClass('ratings_over');
+                    $('.ratings_stars').each(function() {
+                        var v = $(this).find('input').val();
+                        if (v <= data.your_rate) {
+                            $(this).addClass('ratings_over');
                         }
                     });
-                    $('#rate-average').text(data.average_raw + '/5 (' + data.count + ' đánh giá)');
+                    $('#rate-average').text(data.average_raw + '/5 (' + data.count + ')');
                     $('#rate-message').text(data.message).css('color', '#2ecc71');
                     alreadyRated = true;
                     $('#star-widget').data('rated', 1);
@@ -221,9 +240,7 @@ $(document).ready(function() {
             },
             error: function(xhr) {
                 var msg = 'Có lỗi xảy ra.';
-                if (xhr.responseJSON && xhr.responseJSON.message) {
-                    msg = xhr.responseJSON.message;
-                }
+                if (xhr.responseJSON && xhr.responseJSON.message) msg = xhr.responseJSON.message;
                 $('#rate-message').text(msg).css('color', '#e74c3c');
             }
         });
