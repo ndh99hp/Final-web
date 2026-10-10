@@ -1,19 +1,44 @@
 {% extends 'base.html' %}
+{% load static %}
 {% block title %}Sản phẩm{% endblock %}
 
 {% block content %}
 <section>
     <div class="container" style="padding: 40px 0;">
-        <h2 class="text-center">Danh sách sản phẩm</h2>
+        <h2 class="text-center" style="margin-bottom:30px;">Danh sách sản phẩm</h2>
 
-        <div class="row" style="margin-top: 20px;">
+        <div class="row">
             {% for p in products %}
-            <div class="col-sm-3" style="margin-bottom: 30px;">
-                <a href="{% url 'product_detail' p.id %}">
-                    <img src="{{ p.image.url }}" style="width:100%; height:200px; object-fit:cover;">
-                    <h4>{{ p.title }}</h4>
-                    <p style="color:red;">${{ p.price }}</p>
-                </a>
+            <div class="col-sm-4" style="margin-bottom:30px;">
+                <div style="border:1px solid #333; padding:15px; text-align:center;">
+                    <a href="{% url 'product_detail' p.id %}">
+                        {% if p.first_image %}
+                            <img src="{{ MEDIA_URL }}{{ p.first_image }}" style="width:100%; height:250px; object-fit:cover;">
+                        {% else %}
+                            <!-- chưa có hình thì dùng hình mặc định -->
+                            <img src="{% static 'images/home/product1.jpg' %}" style="width:100%; height:250px; object-fit:cover;">
+                        {% endif %}
+                    </a>
+
+                    {% if p.status == 1 %}
+                        <h3 style="color:#fe980f;">${{ p.sale }} <del style="color:#999; font-size:16px;">${{ p.price }}</del></h3>
+                    {% else %}
+                        <h3 style="color:#fe980f;">${{ p.price }}</h3>
+                    {% endif %}
+
+                    <p><a href="{% url 'product_detail' p.id %}">{{ p.title }}</a></p>
+                    <p style="color:#999;">
+                        {{ p.category|default:'' }}{% if p.category and p.brand %} - {% endif %}{{ p.brand|default:'' }}
+                    </p>
+                    {% if p.status == 1 %}
+                        <span class="label label-danger">SALE</span>
+                    {% else %}
+                        <span class="label label-success">NEW</span>
+                    {% endif %}
+                    <p style="margin-top:10px;">
+                        <a href="{% url 'product_detail' p.id %}" class="btn btn-default">Xem chi tiết</a>
+                    </p>
+                </div>
             </div>
             {% empty %}
             <p class="text-center">Chưa có sản phẩm nào.</p>

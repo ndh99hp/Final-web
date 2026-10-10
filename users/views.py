@@ -153,19 +153,3 @@ def account_update_view(request):
         return redirect('account_update')
 
     return render(request, 'users/account_update.html', {'countries': countries})
-
-
-@login_required
-def account_my_product_view(request):
-    return render(request, 'users/account_placeholder.html', {
-        'title': 'Sản phẩm của tôi',
-        'note': 'Tính năng này sẽ hoạt động sau khi hoàn thành app Product.'
-    })
-
-
-@login_required
-def account_add_product_view(request):
-    return render(request, 'users/account_placeholder.html', {
-        'title': 'Thêm sản phẩm',
-        'note': 'Tính năng này sẽ hoạt động sau khi hoàn thành app Product.'
-    })

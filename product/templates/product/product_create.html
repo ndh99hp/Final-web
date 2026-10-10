@@ -3,25 +3,85 @@
 
 {% block content %}
 <section>
-    <div class="container" style="padding: 60px 0;">
+    <div class="container" style="padding:40px 0;">
+        <h2 class="text-center" style="margin-bottom:30px;">ACCOUNT</h2>
         <div class="row">
-            <div class="col-sm-6 col-sm-offset-3">
-                <h2>Thêm sản phẩm mới</h2>
-                <form method="POST" enctype="multipart/form-data">
-                    {% csrf_token %}
-                    <label>Tên sản phẩm:</label>
-                    <input type="text" name="title" class="form-control" required>
-                    <br>
-                    <label>Giá:</label>
-                    <input type="number" step="0.01" name="price" class="form-control" required>
-                    <br>
-                    <label>Hình ảnh:</label>
-                    <input type="file" name="image" required>
-                    <br><br>
-                    <button type="submit" class="btn btn-primary">Lưu</button>
-                </form>
+            <div class="col-sm-3">
+                {% include 'users/account_sidebar.html' %}
+            </div>
+            <div class="col-sm-9">
+                <div style="background:#fff; padding:30px; box-shadow:0 0 10px rgba(0,0,0,0.1);">
+                    <h3>Thêm sản phẩm</h3>
+
+                    {% if error %}
+                        <div class="alert alert-danger">{{ error }}</div>
+                    {% endif %}
+
+                    <form method="POST" enctype="multipart/form-data">
+                        {% csrf_token %}
+
+                        <label>Tên sản phẩm:</label>
+                        <input type="text" name="title" class="form-control" value="{{ old.title }}" required style="margin-bottom:15px;">
+
+                        <label>Giá:</label>
+                        <input type="number" step="0.01" name="price" class="form-control" value="{{ old.price }}" required style="margin-bottom:15px;">
+
+                        <label>Category:</label>
+                        <select name="category" class="form-control" style="margin-bottom:15px;">
+                            <option value="">------</option>
+                            {% for c in categories %}
+                                <option value="{{ c.id }}" {% if old.category == c.id|stringformat:"s" %}selected{% endif %}>{{ c.name }}</option>
+                            {% endfor %}
+                        </select>
+
+                        <label>Brand:</label>
+                        <select name="brand" class="form-control" style="margin-bottom:15px;">
+                            <option value="">------</option>
+                            {% for b in brands %}
+                                <option value="{{ b.id }}" {% if old.brand == b.id|stringformat:"s" %}selected{% endif %}>{{ b.name }}</option>
+                            {% endfor %}
+                        </select>
+
+                        <label>Trạng thái:</label>
+                        <select name="status" id="status" class="form-control" style="margin-bottom:15px;">
+                            <option value="0" {% if old.status == '0' %}selected{% endif %}>New</option>
+                            <option value="1" {% if old.status == '1' %}selected{% endif %}>Sale</option>
+                        </select>
+
+                        <div id="sale-box" style="display:none;">
+                            <label>Giá sale:</label>
+                            <input type="number" step="0.01" name="sale" class="form-control" value="{{ old.sale }}" style="margin-bottom:15px;">
+                        </div>
+
+                        <label>Công ty:</label>
+                        <input type="text" name="company" class="form-control" value="{{ old.company }}" style="margin-bottom:15px;">
+
+                        <label>Hình ảnh (tối đa 3 hình, mỗi hình &lt; 1MB):</label>
+                        <input type="file" name="images" accept="image/*" multiple style="margin-bottom:15px;">
+
+                        <label>Chi tiết:</label>
+                        <textarea name="detail" rows="5" class="form-control" style="margin-bottom:15px;">{{ old.detail }}</textarea>
+
+                        <button type="submit" class="btn btn-primary">Thêm sản phẩm</button>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
 </section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Nếu chọn Sale (value = 1) thì hiện ô nhập giá sale, ngược lại thì ẩn
+    function showSale() {
+        if ($('#status').val() == '1') {
+            $('#sale-box').show();
+        } else {
+            $('#sale-box').hide();
+        }
+    }
+    $('#status').change(showSale);   // khi đổi select
+    showSale();                      // chạy 1 lần khi mở trang
+</script>
 {% endblock %}

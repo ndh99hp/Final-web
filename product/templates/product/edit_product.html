@@ -3,27 +3,97 @@
 
 {% block content %}
 <section>
-    <div class="container" style="padding: 60px 0;">
+    <div class="container" style="padding:40px 0;">
+        <h2 class="text-center" style="margin-bottom:30px;">ACCOUNT</h2>
         <div class="row">
-            <div class="col-sm-6 col-sm-offset-3">
-                <h2>Sửa sản phẩm</h2>
-                <form method="POST" enctype="multipart/form-data">
-                    {% csrf_token %}
-                    <label>Tên sản phẩm:</label>
-                    <input type="text" name="title" class="form-control" value="{{ product.title }}" required>
-                    <br>
-                    <label>Giá:</label>
-                    <input type="number" step="0.01" name="price" class="form-control" value="{{ product.price }}" required>
-                    <br>
-                    <img src="{{ product.image.url }}" style="width:100px;">
-                    <br>
-                    <label>Đổi ảnh khác (bỏ trống nếu giữ ảnh cũ):</label>
-                    <input type="file" name="image">
-                    <br><br>
-                    <button type="submit" class="btn btn-primary">Cập nhật</button>
-                </form>
+            <div class="col-sm-3">
+                {% include 'users/account_sidebar.html' %}
+            </div>
+            <div class="col-sm-9">
+                <div style="background:#fff; padding:30px; box-shadow:0 0 10px rgba(0,0,0,0.1);">
+                    <h3>Sửa sản phẩm</h3>
+
+                    {% if error %}
+                        <div class="alert alert-danger">{{ error }}</div>
+                    {% endif %}
+
+                    <form method="POST" enctype="multipart/form-data">
+                        {% csrf_token %}
+
+                        <label>Tên sản phẩm:</label>
+                        <input type="text" name="title" class="form-control" value="{{ product.title }}" required style="margin-bottom:15px;">
+
+                        <label>Giá:</label>
+                        <input type="number" step="0.01" name="price" class="form-control" value="{{ product.price|stringformat:'s' }}" required style="margin-bottom:15px;">
+
+                        <label>Category:</label>
+                        <select name="category" class="form-control" style="margin-bottom:15px;">
+                            <option value="">------</option>
+                            {% for c in categories %}
+                                <option value="{{ c.id }}" {% if product.category_id == c.id %}selected{% endif %}>{{ c.name }}</option>
+                            {% endfor %}
+                        </select>
+
+                        <label>Brand:</label>
+                        <select name="brand" class="form-control" style="margin-bottom:15px;">
+                            <option value="">------</option>
+                            {% for b in brands %}
+                                <option value="{{ b.id }}" {% if product.brand_id == b.id %}selected{% endif %}>{{ b.name }}</option>
+                            {% endfor %}
+                        </select>
+
+                        <label>Trạng thái:</label>
+                        <select name="status" id="status" class="form-control" style="margin-bottom:15px;">
+                            <option value="0" {% if product.status == 0 %}selected{% endif %}>New</option>
+                            <option value="1" {% if product.status == 1 %}selected{% endif %}>Sale</option>
+                        </select>
+
+                        <div id="sale-box" style="display:none;">
+                            <label>Giá sale:</label>
+                            <input type="number" step="0.01" name="sale" class="form-control" value="{{ product.sale|stringformat:'s' }}" style="margin-bottom:15px;">
+                        </div>
+
+                        <label>Công ty:</label>
+                        <input type="text" name="company" class="form-control" value="{{ product.company }}" style="margin-bottom:15px;">
+
+                        <label>Hình ảnh hiện tại (tick vào hình muốn xóa):</label>
+                        <div style="margin-bottom:15px;">
+                            {% for img in product.get_images %}
+                                <div style="display:inline-block; margin-right:10px; text-align:center;">
+                                    <img src="{{ MEDIA_URL }}{{ img }}" style="width:90px; height:90px; object-fit:cover;"><br>
+                                    <input type="checkbox" name="delete_images" value="{{ img }}"> Xóa
+                                </div>
+                            {% empty %}
+                                <p>Chưa có hình nào.</p>
+                            {% endfor %}
+                        </div>
+
+                        <label>Thêm hình mới (tổng số hình tối đa 3, mỗi hình &lt; 1MB):</label>
+                        <input type="file" name="images" accept="image/*" multiple style="margin-bottom:15px;">
+
+                        <label>Chi tiết:</label>
+                        <textarea name="detail" rows="5" class="form-control" style="margin-bottom:15px;">{{ product.detail }}</textarea>
+
+                        <button type="submit" class="btn btn-primary">Cập nhật</button>
+                        <a href="{% url 'my_products' %}" class="btn btn-default">Quay lại</a>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
 </section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function showSale() {
+        if ($('#status').val() == '1') {
+            $('#sale-box').show();
+        } else {
+            $('#sale-box').hide();
+        }
+    }
+    $('#status').change(showSale);
+    showSale();
+</script>
 {% endblock %}

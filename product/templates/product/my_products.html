@@ -3,31 +3,47 @@
 
 {% block content %}
 <section>
-    <div class="container" style="padding: 40px 0;">
-        <h2>Sản phẩm của tôi</h2>
-        <a href="{% url 'product_create' %}" class="btn btn-primary">+ Thêm sản phẩm</a>
-
-        <table class="table table-bordered" style="margin-top: 20px;">
-            <tr>
-                <th>Ảnh</th>
-                <th>Tên</th>
-                <th>Giá</th>
-                <th>Hành động</th>
-            </tr>
-            {% for p in products %}
-            <tr>
-                <td><img src="{{ p.image.url }}" style="width:60px; height:60px; object-fit:cover;"></td>
-                <td>{{ p.title }}</td>
-                <td>${{ p.price }}</td>
-                <td>
-                    <a href="{% url 'edit_product' p.id %}" class="btn btn-default btn-sm">Sửa</a>
-                    <a href="{% url 'delete_product' p.id %}" class="btn btn-danger btn-sm">Xóa</a>
-                </td>
-            </tr>
-            {% empty %}
-            <tr><td colspan="4">Bạn chưa có sản phẩm nào.</td></tr>
-            {% endfor %}
-        </table>
+    <div class="container" style="padding:40px 0;">
+        <h2 class="text-center" style="margin-bottom:30px;">ACCOUNT</h2>
+        <div class="row">
+            <div class="col-sm-3">
+                {% include 'users/account_sidebar.html' %}
+            </div>
+            <div class="col-sm-9">
+                <h3>Sản phẩm của tôi</h3>
+                <table class="table table-bordered">
+                    <tr>
+                        <th>ID</th>
+                        <th>Hình</th>
+                        <th>Tên</th>
+                        <th>Giá</th>
+                        <th>Hành động</th>
+                    </tr>
+                    {% for p in products %}
+                    <tr>
+                        <td>{{ p.id }}</td>
+                        <td>
+                            {% if p.first_image %}
+                                <img src="{{ MEDIA_URL }}{{ p.first_image }}" style="width:60px; height:60px; object-fit:cover;">
+                            {% endif %}
+                        </td>
+                        <td>{{ p.title }}</td>
+                        <td>${{ p.price }}</td>
+                        <td>
+                            <a href="{% url 'edit_product' p.id %}" class="btn btn-default btn-sm">Sửa</a>
+                            <form method="POST" action="{% url 'delete_product' p.id %}" style="display:inline;" onsubmit="return confirm('Xóa sản phẩm này?');">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-danger btn-sm">Xóa</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="5">Không có mặt hàng nào</td></tr>
+                    {% endfor %}
+                </table>
+                <a href="{% url 'product_create' %}" class="btn btn-primary">Thêm sản phẩm</a>
+            </div>
+        </div>
     </div>
 </section>
 {% endblock %}
