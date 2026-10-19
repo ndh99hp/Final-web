@@ -1,4 +1,6 @@
 {% extends 'base.html' %}
+{# Bảng sản phẩm của tôi: tìm theo tên, phân trang, có nút Xem / Sửa / Xóa (xóa bằng form POST) #}
+{% load static %}
 {% block title %}Sản phẩm của tôi{% endblock %}
 
 {% block content %}
@@ -10,38 +12,88 @@
                 {% include 'users/account_sidebar.html' %}
             </div>
             <div class="col-sm-9">
-                <h3>Sản phẩm của tôi</h3>
-                <table class="table table-bordered">
-                    <tr>
-                        <th>ID</th>
-                        <th>Hình</th>
-                        <th>Tên</th>
-                        <th>Giá</th>
-                        <th>Hành động</th>
-                    </tr>
-                    {% for p in products %}
+                <div class="clearfix" style="margin-bottom:15px;">
+                    <h3 class="pull-left" style="margin:0;">Sản phẩm của tôi ({{ page_obj.paginator.count }})</h3>
+                    <a href="{% url 'product_create' %}" class="btn btn-primary pull-right" style="margin:0;"><i class="fa fa-plus"></i> Thêm sản phẩm</a>
+                </div>
+
+                <form method="GET" class="form-inline" style="margin-bottom:15px;">
+                    <input type="text" name="q" value="{{ q }}" class="form-control" placeholder="Tìm theo tên sản phẩm" style="width:250px;">
+                    <button type="submit" class="btn btn-default"><i class="fa fa-search"></i> Tìm</button>
+                    {% if q %}<a href="{% url 'my_products' %}" class="btn btn-link">Xóa tìm kiếm</a>{% endif %}
+                </form>
+
+                <div class="table-responsive">
+                <table class="table table-bordered table-hover" style="background:#fff;">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Hình</th>
+                            <th>Tên</th>
+                            <th>Danh mục / Hãng</th>
+                            <th>Giá</th>
+                            <th>Trạng thái</th>
+                            <th>Ngày đăng</th>
+                            <th style="min-width:170px;">Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for p in page_obj %}
                     <tr>
                         <td>{{ p.id }}</td>
                         <td>
                             {% if p.first_image %}
-                                <img src="{{ MEDIA_URL }}{{ p.first_image }}" style="width:60px; height:60px; object-fit:cover;">
+                                <img src="{{ MEDIA_URL }}{{ p.first_image }}" alt="" style="width:60px; height:60px; object-fit:cover;">
+                            {% else %}
+                                <img src="{% static 'images/home/product1.jpg' %}" alt="" style="width:60px; height:60px; object-fit:cover; opacity:.5;">
                             {% endif %}
                         </td>
-                        <td>{{ p.title }}</td>
-                        <td>${{ p.price }}</td>
+                        <td><a href="{% url 'product_detail' p.id %}">{{ p.title }}</a></td>
+                        <td>{{ p.category|default:'-' }} / {{ p.brand|default:'-' }}</td>
                         <td>
-                            <a href="{% url 'edit_product' p.id %}" class="btn btn-default btn-sm">Sửa</a>
-                            <form method="POST" action="{% url 'delete_product' p.id %}" style="display:inline;" onsubmit="return confirm('Xóa sản phẩm này?');">
+                            {% if p.status == 1 %}
+                                <b style="color:#fe980f;">${{ p.sale }}</b><br><del class="text-muted">${{ p.price }}</del>
+                            {% else %}
+                                <b style="color:#fe980f;">${{ p.price }}</b>
+                            {% endif %}
+                        </td>
+                        <td>{% if p.status == 1 %}<span class="label label-danger">SALE</span>{% else %}<span class="label label-success">NEW</span>{% endif %}</td>
+                        <td>{{ p.created_at|date:'d/m/Y' }}</td>
+                        <td>
+                            <a href="{% url 'product_detail' p.id %}" class="btn btn-default btn-sm" style="margin:0;"><i class="fa fa-eye"></i></a>
+                            <a href="{% url 'edit_product' p.id %}" class="btn btn-default btn-sm" style="margin:0;"><i class="fa fa-edit"></i> Sửa</a>
+                            <form method="POST" action="{% url 'delete_product' p.id %}" style="display:inline;" onsubmit="return confirm('Xóa sản phẩm này? Các hình của sản phẩm cũng sẽ bị xóa.');">
                                 {% csrf_token %}
-                                <button type="submit" class="btn btn-danger btn-sm">Xóa</button>
+                                <button type="submit" class="btn btn-danger btn-sm" style="margin:0;"><i class="fa fa-trash"></i> Xóa</button>
                             </form>
                         </td>
                     </tr>
                     {% empty %}
-                    <tr><td colspan="5">Không có mặt hàng nào</td></tr>
+                    <tr>
+                        <td colspan="8" class="text-center" style="padding:30px;">
+                            {% if q %}Không tìm thấy sản phẩm nào có tên "{{ q }}".{% else %}Bạn chưa có sản phẩm nào. <a href="{% url 'product_create' %}">Thêm sản phẩm đầu tiên</a>{% endif %}
+                        </td>
+                    </tr>
                     {% endfor %}
+                    </tbody>
                 </table>
-                <a href="{% url 'product_create' %}" class="btn btn-primary">Thêm sản phẩm</a>
+                </div>
+
+                {% if page_obj.paginator.num_pages > 1 %}
+                <div class="text-center">
+                    <ul class="pagination">
+                        {% if page_obj.has_previous %}
+                            <li><a href="?{{ page_query }}{% if page_query %}&{% endif %}page={{ page_obj.previous_page_number }}">&laquo;</a></li>
+                        {% endif %}
+                        {% for n in page_obj.paginator.page_range %}
+                            <li {% if n == page_obj.number %}class="active"{% endif %}><a href="?{{ page_query }}{% if page_query %}&{% endif %}page={{ n }}">{{ n }}</a></li>
+                        {% endfor %}
+                        {% if page_obj.has_next %}
+                            <li><a href="?{{ page_query }}{% if page_query %}&{% endif %}page={{ page_obj.next_page_number }}">&raquo;</a></li>
+                        {% endif %}
+                    </ul>
+                </div>
+                {% endif %}
             </div>
         </div>
     </div>

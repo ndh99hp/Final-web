@@ -1,0 +1,82 @@
+{# Các ô nhập dùng chung cho form THÊM và form SỬA sản phẩm (include vào product_create.html và edit_product.html) #}
+{# biến: form (dữ liệu trong các ô), categories, brands. Riêng trang sửa có thêm product + delete_images #}
+
+<div class="form-group">
+    <label>Tên sản phẩm <span class="text-danger">*</span></label>
+    <input type="text" name="title" class="form-control" value="{{ form.title }}" maxlength="255" required>
+</div>
+
+<div class="row">
+    <div class="col-sm-6 form-group">
+        <label>Giá ($) <span class="text-danger">*</span></label>
+        <input type="number" step="0.01" min="0.01" max="99999999" name="price" class="form-control" value="{{ form.price }}" required>
+    </div>
+    <div class="col-sm-6 form-group">
+        <label>Trạng thái</label>
+        <select name="status" id="status" class="form-control">
+            <option value="0" {% if form.status != '1' %}selected{% endif %}>New</option>
+            <option value="1" {% if form.status == '1' %}selected{% endif %}>Sale</option>
+        </select>
+    </div>
+</div>
+
+{# ô giá sale chỉ hiện khi chọn trạng thái Sale (xem đoạn script cuối trang) #}
+<div id="sale-box" class="form-group" style="display:none;">
+    <label>Giá sale ($) <span class="text-danger">*</span> <small class="text-muted">(phải nhỏ hơn giá gốc)</small></label>
+    <input type="number" step="0.01" min="0.01" max="99999999" name="sale" id="sale" class="form-control" value="{{ form.sale }}">
+</div>
+
+<div class="row">
+    <div class="col-sm-6 form-group">
+        <label>Danh mục</label>
+        <select name="category" class="form-control">
+            <option value="">------</option>
+            {% for c in categories %}
+                <option value="{{ c.id }}" {% if form.category == c.id|stringformat:'s' %}selected{% endif %}>{{ c.name }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="col-sm-6 form-group">
+        <label>Thương hiệu</label>
+        <select name="brand" class="form-control">
+            <option value="">------</option>
+            {% for b in brands %}
+                <option value="{{ b.id }}" {% if form.brand == b.id|stringformat:'s' %}selected{% endif %}>{{ b.name }}</option>
+            {% endfor %}
+        </select>
+    </div>
+</div>
+
+<div class="form-group">
+    <label>Công ty</label>
+    <input type="text" name="company" class="form-control" value="{{ form.company }}" maxlength="255">
+</div>
+
+{# --- hình ảnh --- #}
+{% if product %}
+<div class="form-group">
+    <label>Hình ảnh hiện tại <small class="text-muted">(tick vào hình muốn xóa)</small></label>
+    <div>
+        {% for img in product.get_images %}
+            <div style="display:inline-block; margin-right:10px; text-align:center;">
+                <img src="{{ MEDIA_URL }}{{ img }}" alt="" style="width:90px; height:90px; object-fit:cover; border:1px solid #ddd;"><br>
+                <label style="font-weight:normal;"><input type="checkbox" name="delete_images" class="old-image" value="{{ img }}" {% if img in delete_images %}checked{% endif %}> Xóa</label>
+            </div>
+        {% empty %}
+            <p class="text-muted">Chưa có hình nào.</p>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<div class="form-group">
+    <label>{% if product %}Thêm hình mới{% else %}Hình ảnh{% endif %} <small class="text-muted">(tổng tối đa 3 hình, jpg/png/gif/webp, mỗi hình &lt; 1MB)</small></label>
+    <input type="file" name="images" id="images" accept="image/*" multiple>
+    <div id="image-error" class="text-danger" style="margin-top:5px;"></div>
+    <div id="preview" style="margin-top:10px;"></div>
+</div>
+
+<div class="form-group">
+    <label>Chi tiết</label>
+    <textarea name="detail" rows="5" class="form-control">{{ form.detail }}</textarea>
+</div>

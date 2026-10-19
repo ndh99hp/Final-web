@@ -1,48 +1,37 @@
 {% load static %}
+{# header.html: đầu trang dùng chung (include vào base.html). Gồm 2 phần: header-middle, header-bottom #}
+{# request.resolver_match.url_name = tên url của trang hiện tại, dùng để tô sáng (active) menu #}
+{% with page=request.resolver_match.url_name %}
 <header id="header">
-    <div class="header_top">
-        <div class="container"> 
-            <div class="row">
-                <div class="col-sm-6">
-                    <div class="contactinfo">
-                        <ul class="nav nav-pills">
-                            <li><a href=""><i class="fa fa-phone"></i> +2 95 01 88 821</a></li>
-                            <li><a href=""><i class="fa fa-envelope"></i> info@domain.com</a></li>
-                        </ul>
-                    </div>
-                </div>
-                <div class="col-sm-6">
-                    <div class="social-icons pull-right">
-                        <ul class="nav navbar-nav">
-                            <li><a href=""><i class="fa fa-facebook"></i></a></li>
-                            <li><a href=""><i class="fa fa-twitter"></i></a></li>
-                            <li><a href=""><i class="fa fa-google-plus"></i></a></li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
 
+    {# ===== 1. Phần giữa: logo + menu tài khoản / giỏ hàng ===== #}
     <div class="header-middle">
         <div class="container">
             <div class="row">
                 <div class="col-md-4 clearfix">
                     <div class="logo pull-left">
-                        <a href="{% url 'blog_list' %}"><img src="{% static 'images/home/logo.png' %}" alt=""></a>
+                        <a href="{% url 'blog_list' %}"><img src="{% static 'images/home/logo.png' %}" alt="E-Shopper"></a>
                     </div>
                 </div>
                 <div class="col-md-8 clearfix">
                     <div class="shop-menu clearfix pull-right">
                         <ul class="nav navbar-nav">
-                            <!-- TODO: bật lại khi có app cart/checkout -->
-                            <!-- <li><a href=""><i class="fa fa-shopping-cart"></i> Cart</a></li> -->
                             {% if user.is_authenticated %}
-                                <li><a href="{% url 'account_update' %}"><i class="fa fa-user"></i> Xin chào, {{ user.username }}</a></li>
-                                <li><a href="{% url 'logout' %}"><i class="fa fa-lock"></i> Đăng xuất</a></li>
+                                <li><a href="{% url 'account_update' %}" {% if page == 'account_update' %}class="active"{% endif %}><i class="fa fa-user"></i> Xin chào, {{ user.username }}</a></li>
+                                <li><a href="{% url 'my_products' %}" {% if page == 'my_products' or page == 'edit_product' %}class="active"{% endif %}><i class="fa fa-list"></i> Sản phẩm của tôi</a></li>
+                                {% if user.is_superuser %}
+                                    <li><a href="{% url 'list_users' %}" {% if page == 'list_users' %}class="active"{% endif %}><i class="fa fa-users"></i> Quản lý user</a></li>
+                                {% endif %}
+                            {% endif %}
+                            {# TODO: thay '#' bằng {% url %} khi làm xong app cart/checkout #}
+                            <li><a href="#"><i class="fa fa-crosshairs"></i> Thanh toán</a></li>
+                            {# id="cart-counter": sau này AJAX 'thêm vào giỏ' sẽ cập nhật số này. Chưa có giỏ thì hiện 0 #}
+                            <li><a href="#"><i class="fa fa-shopping-cart"></i> Giỏ hàng (<span id="cart-counter">{{ request.session.cart|length }}</span>)</a></li>
+                            {% if user.is_authenticated %}
+                                <li><a href="{% url 'logout' %}"><i class="fa fa-sign-out"></i> Đăng xuất</a></li>
                             {% else %}
-                                <li><a href="{% url 'login' %}"><i class="fa fa-lock"></i> Đăng nhập</a></li>
-                                <li><a href="{% url 'register' %}"><i class="fa fa-lock"></i> Đăng ký</a></li>
+                                <li><a href="{% url 'login' %}" {% if page == 'login' %}class="active"{% endif %}><i class="fa fa-lock"></i> Đăng nhập</a></li>
+                                <li><a href="{% url 'register' %}" {% if page == 'register' %}class="active"{% endif %}><i class="fa fa-plus"></i> Đăng ký</a></li>
                             {% endif %}
                         </ul>
                     </div>
@@ -51,10 +40,12 @@
         </div>
     </div>
 
+    {# ===== 2. Menu chính + ô tìm kiếm ===== #}
     <div class="header-bottom">
         <div class="container">
             <div class="row">
                 <div class="col-sm-9">
+                    {# nút 3 gạch, chỉ hiện trên màn hình điện thoại #}
                     <div class="navbar-header">
                         <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
                             <span class="sr-only">Toggle navigation</span>
@@ -65,23 +56,45 @@
                     </div>
                     <div class="mainmenu pull-left">
                         <ul class="nav navbar-nav collapse navbar-collapse">
+                            {# TODO: khi có trang chủ riêng thì đổi 'blog_list' thành tên url trang chủ #}
                             <li><a href="{% url 'blog_list' %}">Trang chủ</a></li>
+
                             <li class="dropdown">
-                                <a href="#" class="active">Blog <i class="fa fa-angle-down"></i></a>
+                                <a href="#" {% if page == 'product_list' or page == 'product_detail' or page == 'product_create' or page == 'my_products' or page == 'edit_product' %}class="active"{% endif %}>Cửa hàng <i class="fa fa-angle-down"></i></a>
                                 <ul role="menu" class="sub-menu">
-                                    <li><a href="{% url 'blog_list' %}" class="active">Danh sách Blog</a></li>
+                                    <li><a href="{% url 'product_list' %}">Tất cả sản phẩm</a></li>
+                                    {% if user.is_authenticated %}
+                                        <li><a href="{% url 'my_products' %}">Sản phẩm của tôi</a></li>
+                                        <li><a href="{% url 'product_create' %}">Thêm sản phẩm</a></li>
+                                    {% else %}
+                                        <li><a href="{% url 'login' %}">Đăng nhập</a></li>
+                                    {% endif %}
+                                    <li><a href="#">Giỏ hàng</a></li>
+                                    <li><a href="#">Thanh toán</a></li>
                                 </ul>
                             </li>
-                            <li><a href="{% url 'product_list' %}">Sản phẩm</a></li>
+
+                            <li class="dropdown">
+                                <a href="#" {% if page == 'blog_list' or page == 'blog_detail' %}class="active"{% endif %}>Blog <i class="fa fa-angle-down"></i></a>
+                                <ul role="menu" class="sub-menu">
+                                    <li><a href="{% url 'blog_list' %}">Danh sách Blog</a></li>
+                                </ul>
+                            </li>
+
+                            {# TODO: trang Liên hệ sẽ làm sau #}
+                            <li><a href="#">Liên hệ</a></li>
                         </ul>
                     </div>
                 </div>
+
+                {# Ô tìm kiếm: gửi ?q=... sang trang Shop (view product_list cần lọc theo q thì mới có tác dụng) #}
                 <div class="col-sm-3">
-                    <div class="search_box pull-right">
-                        <input type="text" placeholder="Tìm kiếm"/>
-                    </div>
+                    <form method="GET" action="{% url 'product_list' %}" class="search_box pull-right">
+                        <input type="text" name="q" value="{{ request.GET.q }}" placeholder="Tìm kiếm sản phẩm">
+                    </form>
                 </div>
             </div>
         </div>
     </div>
 </header>
+{% endwith %}

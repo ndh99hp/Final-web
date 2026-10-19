@@ -1,29 +1,161 @@
 {% extends 'base.html' %}
+{# Trang chi tiết 1 sản phẩm (giao diện E-Shopper): thanh bên trái, hình ảnh, thông tin, các tab, sản phẩm liên quan #}
+{% load static %}
 {% block title %}{{ product.title }}{% endblock %}
 
 {% block content %}
 <section>
-    <div class="container" style="padding: 40px 0;">
+    <div class="container">
+
+        {# đường dẫn: Cửa hàng > Danh mục > Tên sản phẩm #}
+        <ol class="breadcrumb" style="margin-top:20px; background:#f7f7f0;">
+            <li><a href="{% url 'product_list' %}">Cửa hàng</a></li>
+            {% if product.category %}
+                <li><a href="{% url 'product_list' %}?category={{ product.category_id }}">{{ product.category }}</a></li>
+            {% endif %}
+            <li class="active">{{ product.title }}</li>
+        </ol>
+
         <div class="row">
-            <div class="col-sm-6">
-                {% for img in product.get_images %}
-                    <img src="{{ MEDIA_URL }}{{ img }}" style="width:100%; margin-bottom:10px;">
-                {% endfor %}
+
+            {# ===== CỘT TRÁI: danh mục + thương hiệu (bấm vào sẽ về trang /shop/ đã lọc) ===== #}
+            <div class="col-sm-3">
+                <div class="left-sidebar">
+                    {% include 'product/_sidebar_filters.html' %}
+                </div>
             </div>
-            <div class="col-sm-6">
-                <h2>{{ product.title }}</h2>
-                {% if product.status == 1 %}
-                    <h3 style="color:red;">${{ product.sale }} <del style="color:#999;">${{ product.price }}</del></h3>
-                {% else %}
-                    <h3 style="color:red;">${{ product.price }}</h3>
+
+            {# ===== CỘT PHẢI ===== #}
+            <div class="col-sm-9 padding-right">
+
+                {# --- Hình ảnh + thông tin --- #}
+                <div class="product-details">
+                    <div class="col-sm-5">
+                        <div class="view-product">
+                            {% if images %}
+                                <img id="main-image" src="{{ MEDIA_URL }}{{ images.0 }}" alt="{{ product.title }}" style="object-fit:cover;">
+                            {% else %}
+                                <img id="main-image" src="{% static 'images/home/product1.jpg' %}" alt="{{ product.title }}" style="object-fit:cover;">
+                            {% endif %}
+                        </div>
+
+                        {# các hình nhỏ: bấm vào để đổi hình lớn (chỉ hiện khi có từ 2 hình trở lên) #}
+                        {% if images|length > 1 %}
+                        <div id="similar-product">
+                            {% for img in images %}
+                                <a href="#" class="thumb" data-src="{{ MEDIA_URL }}{{ img }}">
+                                    <img src="{{ MEDIA_URL }}{{ img }}" alt="" style="width:84px; height:84px; object-fit:cover; margin-right:8px; border:1px solid #f7f7f0;">
+                                </a>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="col-sm-7">
+                        <div class="product-information">
+                            {% if product.status == 1 %}
+                                <img src="{% static 'images/home/sale.png' %}" class="newarrival" alt="Sale">
+                            {% else %}
+                                <img src="{% static 'images/home/new.png' %}" class="newarrival" alt="New">
+                            {% endif %}
+
+                            <h2>{{ product.title }}</h2>
+                            <p>Mã sản phẩm: {{ product.id }}</p>
+
+                            <span>
+                                {% if product.status == 1 %}
+                                    <span>${{ product.sale }}</span>
+                                    <del style="color:#999; font-size:18px; line-height:30px;">${{ product.price }}</del>
+                                {% else %}
+                                    <span>${{ product.price }}</span>
+                                {% endif %}
+                            </span>
+                            {# TODO: ô 'Số lượng' và nút 'Add to cart' sẽ thêm khi làm xong giỏ hàng #}
+
+                            <p><b>Tình trạng:</b> {% if product.status == 1 %}Đang giảm giá (Sale){% else %}Hàng mới (New){% endif %}</p>
+                            <p><b>Danh mục:</b>
+                                {% if product.category %}<a href="{% url 'product_list' %}?category={{ product.category_id }}">{{ product.category }}</a>{% else %}-{% endif %}
+                            </p>
+                            <p><b>Thương hiệu:</b>
+                                {% if product.brand %}<a href="{% url 'product_list' %}?brand={{ product.brand_id }}">{{ product.brand }}</a>{% else %}-{% endif %}
+                            </p>
+                            <p><b>Công ty:</b> {{ product.company|default:'-' }}</p>
+                            <p><b>Người đăng:</b> {{ product.author.get_full_name|default:product.author.username }}</p>
+                            <p><b>Ngày đăng:</b> {{ product.created_at|date:'d/m/Y' }}</p>
+
+                            <div style="margin-top:20px; display:flex; flex-wrap:wrap; gap:8px; align-items:center;">
+                                <a href="{% url 'product_list' %}" class="btn btn-default"><i class="fa fa-arrow-left"></i> Quay lại cửa hàng</a>
+                                {% if is_owner %}
+                                    {# chỉ chủ sản phẩm mới thấy 2 nút này #}
+                                    <a href="{% url 'edit_product' product.id %}" class="btn btn-primary" style="margin:0;"><i class="fa fa-edit"></i> Sửa</a>
+                                    <form method="POST" action="{% url 'delete_product' product.id %}" style="margin:0;" onsubmit="return confirm('Xóa sản phẩm này?');">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-danger"><i class="fa fa-trash"></i> Xóa</button>
+                                    </form>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {# --- Các tab: Chi tiết / Công ty --- #}
+                <div class="category-tab shop-details-tab">
+                    <div class="col-sm-12">
+                        <ul class="nav nav-tabs">
+                            <li class="active"><a href="#details" data-toggle="tab">Chi tiết</a></li>
+                            <li><a href="#company" data-toggle="tab">Thông tin công ty</a></li>
+                        </ul>
+                    </div>
+                    <div class="tab-content">
+                        <div class="tab-pane fade active in" id="details" style="padding:20px 30px;">
+                            {% if product.detail %}
+                                <p>{{ product.detail|linebreaksbr }}</p>
+                            {% else %}
+                                <p>Sản phẩm này chưa có mô tả chi tiết.</p>
+                            {% endif %}
+                        </div>
+                        <div class="tab-pane fade" id="company" style="padding:20px 30px;">
+                            <p><b>Công ty:</b> {{ product.company|default:'Chưa cập nhật' }}</p>
+                            <p><b>Người đăng bán:</b> {{ product.author.get_full_name|default:product.author.username }}</p>
+                            <p><b>Email liên hệ:</b> {{ product.author.email|default:'Chưa cập nhật' }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                {# --- Sản phẩm liên quan (băng chuyền, mỗi lần 3 sản phẩm) --- #}
+                {% if related_groups %}
+                <div class="recommended_items">
+                    <h2 class="title text-center">Sản phẩm liên quan</h2>
+                    <div id="recommended-item-carousel" class="carousel slide" data-ride="carousel" data-interval="false">
+                        <div class="carousel-inner">
+                            {% for group in related_groups %}
+                            <div class="item {% if forloop.first %}active{% endif %}">
+                                {% for p in group %}
+                                    {% include 'product/_product_card.html' %}
+                                {% endfor %}
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% if related_groups|length > 1 %}
+                        <a class="left recommended-item-control" href="#recommended-item-carousel" data-slide="prev"><i class="fa fa-angle-left"></i></a>
+                        <a class="right recommended-item-control" href="#recommended-item-carousel" data-slide="next"><i class="fa fa-angle-right"></i></a>
+                        {% endif %}
+                    </div>
+                </div>
                 {% endif %}
-                <p>Category: {{ product.category|default:'-' }}</p>
-                <p>Brand: {{ product.brand|default:'-' }}</p>
-                <p>Công ty: {{ product.company }}</p>
-                <p>Người đăng: {{ product.author }}</p>
-                <p>{{ product.detail|linebreaksbr }}</p>
+
             </div>
         </div>
     </div>
 </section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    {# bấm hình nhỏ thì đổi hình lớn #}
+    $('#similar-product .thumb').click(function (e) {
+        e.preventDefault();
+        $('#main-image').attr('src', $(this).data('src'));
+    });
+</script>
 {% endblock %}

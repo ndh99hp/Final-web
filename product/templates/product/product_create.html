@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{# Form thêm sản phẩm (tối đa 3 hình, chọn Sale thì phải nhập giá sale nhỏ hơn giá gốc). Các ô nằm trong _product_form.html #}
 {% block title %}Thêm sản phẩm{% endblock %}
 
 {% block content %}
@@ -11,7 +12,7 @@
             </div>
             <div class="col-sm-9">
                 <div style="background:#fff; padding:30px; box-shadow:0 0 10px rgba(0,0,0,0.1);">
-                    <h3>Thêm sản phẩm</h3>
+                    <h3 style="margin-top:0;">Thêm sản phẩm</h3>
 
                     {% if error %}
                         <div class="alert alert-danger">{{ error }}</div>
@@ -19,50 +20,9 @@
 
                     <form method="POST" enctype="multipart/form-data">
                         {% csrf_token %}
-
-                        <label>Tên sản phẩm:</label>
-                        <input type="text" name="title" class="form-control" value="{{ old.title }}" required style="margin-bottom:15px;">
-
-                        <label>Giá:</label>
-                        <input type="number" step="0.01" name="price" class="form-control" value="{{ old.price }}" required style="margin-bottom:15px;">
-
-                        <label>Category:</label>
-                        <select name="category" class="form-control" style="margin-bottom:15px;">
-                            <option value="">------</option>
-                            {% for c in categories %}
-                                <option value="{{ c.id }}" {% if old.category == c.id|stringformat:"s" %}selected{% endif %}>{{ c.name }}</option>
-                            {% endfor %}
-                        </select>
-
-                        <label>Brand:</label>
-                        <select name="brand" class="form-control" style="margin-bottom:15px;">
-                            <option value="">------</option>
-                            {% for b in brands %}
-                                <option value="{{ b.id }}" {% if old.brand == b.id|stringformat:"s" %}selected{% endif %}>{{ b.name }}</option>
-                            {% endfor %}
-                        </select>
-
-                        <label>Trạng thái:</label>
-                        <select name="status" id="status" class="form-control" style="margin-bottom:15px;">
-                            <option value="0" {% if old.status == '0' %}selected{% endif %}>New</option>
-                            <option value="1" {% if old.status == '1' %}selected{% endif %}>Sale</option>
-                        </select>
-
-                        <div id="sale-box" style="display:none;">
-                            <label>Giá sale:</label>
-                            <input type="number" step="0.01" name="sale" class="form-control" value="{{ old.sale }}" style="margin-bottom:15px;">
-                        </div>
-
-                        <label>Công ty:</label>
-                        <input type="text" name="company" class="form-control" value="{{ old.company }}" style="margin-bottom:15px;">
-
-                        <label>Hình ảnh (tối đa 3 hình, mỗi hình &lt; 1MB):</label>
-                        <input type="file" name="images" accept="image/*" multiple style="margin-bottom:15px;">
-
-                        <label>Chi tiết:</label>
-                        <textarea name="detail" rows="5" class="form-control" style="margin-bottom:15px;">{{ old.detail }}</textarea>
-
-                        <button type="submit" class="btn btn-primary">Thêm sản phẩm</button>
+                        {% include 'product/_product_form.html' %}
+                        <button type="submit" class="btn btn-primary" style="margin:0;">Thêm sản phẩm</button>
+                        <a href="{% url 'my_products' %}" class="btn btn-default">Hủy</a>
                     </form>
                 </div>
             </div>
@@ -72,16 +32,5 @@
 {% endblock %}
 
 {% block scripts %}
-<script>
-    // Nếu chọn Sale (value = 1) thì hiện ô nhập giá sale, ngược lại thì ẩn
-    function showSale() {
-        if ($('#status').val() == '1') {
-            $('#sale-box').show();
-        } else {
-            $('#sale-box').hide();
-        }
-    }
-    $('#status').change(showSale);   // khi đổi select
-    showSale();                      // chạy 1 lần khi mở trang
-</script>
+{% include 'product/_product_form_script.html' %}
 {% endblock %}

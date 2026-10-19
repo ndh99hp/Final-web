@@ -1,3 +1,4 @@
+# users/views.py: xử lý đăng nhập, đăng ký, đăng xuất, danh sách user, cập nhật tài khoản
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from django.shortcuts import render, redirect
@@ -8,6 +9,7 @@ from django.contrib.auth import authenticate, login, logout, update_session_auth
 from django.contrib.auth.decorators import login_required
 
 
+# Đăng nhập: authenticate() kiểm tra username/password, login() lưu vào session
 def login_view(request):
     if request.method == 'POST':
         username = request.POST.get('username')
@@ -20,6 +22,7 @@ def login_view(request):
             messages.error(request, 'Sai tên đăng nhập hoặc mật khẩu.')
     return render(request, 'users/login.html')
 
+# Đăng ký tài khoản thường: kiểm tra mật khẩu nhập lại + trùng username rồi tạo user
 def register_view(request):
     countries = Country.objects.all()
 
@@ -59,9 +62,11 @@ def register_view(request):
 
     return render(request, 'users/register.html', {'countries': countries})
 
+# Đăng xuất: xóa session rồi quay về trang login
 def logout_view(request):
     logout(request)
     return redirect('login')
+# Decorator tự viết: chỉ cho superuser vào, người khác bị chuyển về trang login
 def superuser_required(view_func):
     def check(user):
         return user.is_authenticated and user.is_superuser
@@ -69,12 +74,14 @@ def superuser_required(view_func):
     return decorated(view_func)
 
 
+# Danh sách tất cả user (chỉ superuser xem được)
 @superuser_required
 def list_users_view(request):
     users = User.objects.all().order_by('-date_joined')
     return render(request, 'users/list_users.html', {'users': users})
 
 
+# Superuser tạo thêm tài khoản superuser mới (is_staff + is_superuser, level = 2)
 @superuser_required
 def register_superuser_view(request):
     countries = Country.objects.all()
@@ -117,6 +124,8 @@ def register_superuser_view(request):
         return redirect('list_users')
 
     return render(request, 'users/register_superuser.html', {'countries': countries})
+# Trang Account/update: user đang đăng nhập sửa thông tin của chính mình
+# Nếu đổi mật khẩu thì dùng update_session_auth_hash để khỏi bị đăng xuất
 @login_required
 def account_update_view(request):
     user = request.user

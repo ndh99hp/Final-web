@@ -1,3 +1,5 @@
+# product/models.py: định nghĩa các bảng trong database (Category, Brand, Product)
+# Sau khi sửa file này phải chạy: python manage.py makemigrations && python manage.py migrate
 import json
 from django.db import models
 from users.models import User  # bảng user

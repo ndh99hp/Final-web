@@ -1,0 +1,35 @@
+{# Script dùng chung cho form thêm / sửa: ẩn hiện ô giá sale + xem trước hình + báo lỗi hình ngay trên trình duyệt #}
+<script>
+    // 1. Chọn Sale (value = 1) thì hiện ô nhập giá sale, ngược lại thì ẩn
+    function showSale() {
+        if ($('#status').val() == '1') {
+            $('#sale-box').show();
+            $('#sale').prop('required', true);
+        } else {
+            $('#sale-box').hide();
+            $('#sale').prop('required', false);
+        }
+    }
+    $('#status').change(showSale);
+    showSale();
+
+    // 2. Xem trước hình mới chọn và báo lỗi sớm (server vẫn kiểm tra lại lần nữa)
+    function checkImages() {
+        var files = $('#images')[0].files;
+        // số hình cũ còn giữ lại = hình cũ trừ các hình đã tick xóa (trang thêm thì = 0)
+        var keep = $('.old-image').length - $('.old-image:checked').length;
+        var msg = '';
+        $('#preview').empty();
+        for (var i = 0; i < files.length; i++) {
+            var f = files[i];
+            if (f.type.indexOf('image/') !== 0) { msg = 'File ' + f.name + ' không phải hình ảnh'; }
+            else if (f.size >= 1024 * 1024) { msg = 'File ' + f.name + ' lớn hơn 1MB'; }
+            $('#preview').append('<img src="' + URL.createObjectURL(f) + '" style="width:90px; height:90px; object-fit:cover; margin-right:10px; border:1px solid #ddd;">');
+        }
+        if (msg === '' && keep + files.length > 3) { msg = 'Tổng số hình không được quá 3 (đang giữ ' + keep + ', chọn thêm ' + files.length + ')'; }
+        $('#image-error').text(msg);
+        $('button[type=submit]').prop('disabled', msg !== '');
+    }
+    $('#images').change(checkImages);
+    $('.old-image').change(checkImages);
+</script>

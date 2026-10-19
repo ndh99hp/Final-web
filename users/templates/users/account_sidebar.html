@@ -1,11 +1,28 @@
-<div class="account-sidebar" style="background:#f7f7f7; padding:15px;">
-    <h3 style="color:#e74c3c;">ACCOUNT</h3>
-    <ul class="nav nav-pills nav-stacked" style="margin-bottom:20px;">
-        <li><a href="{% url 'account_update' %}">Cập nhật thông tin</a></li>
-    </ul>
-    <h3 style="color:#e74c3c;">MY PRODUCT</h3>
-    <ul class="nav nav-pills nav-stacked">
-        <li><a href="{% url 'my_products' %}">Sản phẩm của tôi</a></li>
-        <li><a href="{% url 'product_create' %}">Thêm sản phẩm</a></li>
-    </ul>
+{# Menu bên trái của các trang Account (include vào account_update, my_products, product_create, edit_product) #}
+{# request.resolver_match.url_name = tên url của trang hiện tại, để tô cam mục đang đứng #}
+{% with page=request.resolver_match.url_name %}
+<div class="left-sidebar">
+    <h2>Tài khoản</h2>
+    <div class="panel-group category-products">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h4 class="panel-title"><a href="{% url 'account_update' %}" {% if page == 'account_update' %}style="color:#fe980f;"{% endif %}>Cập nhật thông tin</a></h4>
+            </div>
+        </div>
+    </div>
+
+    <h2>Sản phẩm</h2>
+    <div class="panel-group category-products">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h4 class="panel-title"><a href="{% url 'my_products' %}" {% if page == 'my_products' or page == 'edit_product' %}style="color:#fe980f;"{% endif %}>Sản phẩm của tôi</a></h4>
+            </div>
+        </div>
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h4 class="panel-title"><a href="{% url 'product_create' %}" {% if page == 'product_create' %}style="color:#fe980f;"{% endif %}>Thêm sản phẩm</a></h4>
+            </div>
+        </div>
+    </div>
 </div>
+{% endwith %}

@@ -1,0 +1,33 @@
+{# Phần lọc Danh mục + Thương hiệu của thanh bên trái (include vào product_list.html và product_detail.html) #}
+{# cần các biến: categories, brands, category_id, brand_id, all_category_url, all_brand_url #}
+<h2>Danh mục</h2>
+<div class="panel-group category-products">
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <h4 class="panel-title"><a href="{{ all_category_url }}" {% if not category_id %}style="color:#fe980f;"{% endif %}>Tất cả danh mục</a></h4>
+        </div>
+    </div>
+    {% for c in categories %}
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <h4 class="panel-title">
+                <a href="{{ c.url }}" {% if category_id == c.id|stringformat:'s' %}style="color:#fe980f;"{% endif %}>
+                    <span class="badge pull-right">{{ c.total }}</span>{{ c.name }}
+                </a>
+            </h4>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<div class="brands_products">
+    <h2>Thương hiệu</h2>
+    <div class="brands-name">
+        <ul class="nav nav-pills nav-stacked">
+            <li><a href="{{ all_brand_url }}" {% if not brand_id %}style="color:#fe980f;"{% endif %}>Tất cả thương hiệu</a></li>
+            {% for b in brands %}
+            <li><a href="{{ b.url }}" {% if brand_id == b.id|stringformat:'s' %}style="color:#fe980f;"{% endif %}><span class="pull-right">({{ b.total }})</span>{{ b.name }}</a></li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>

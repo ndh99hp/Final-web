@@ -1,49 +1,103 @@
 {% extends 'base.html' %}
+{# Trang /shop/ (giao diện E-Shopper): thanh bên trái (Category, Brands, Price Range), sắp xếp, lưới sản phẩm, phân trang #}
 {% load static %}
 {% block title %}Sản phẩm{% endblock %}
 
 {% block content %}
 <section>
-    <div class="container" style="padding: 40px 0;">
-        <h2 class="text-center" style="margin-bottom:30px;">Danh sách sản phẩm</h2>
-
+    <div class="container">
         <div class="row">
-            {% for p in products %}
-            <div class="col-sm-4" style="margin-bottom:30px;">
-                <div style="border:1px solid #333; padding:15px; text-align:center;">
-                    <a href="{% url 'product_detail' p.id %}">
-                        {% if p.first_image %}
-                            <img src="{{ MEDIA_URL }}{{ p.first_image }}" style="width:100%; height:250px; object-fit:cover;">
-                        {% else %}
-                            <!-- chưa có hình thì dùng hình mặc định -->
-                            <img src="{% static 'images/home/product1.jpg' %}" style="width:100%; height:250px; object-fit:cover;">
-                        {% endif %}
-                    </a>
 
-                    {% if p.status == 1 %}
-                        <h3 style="color:#fe980f;">${{ p.sale }} <del style="color:#999; font-size:16px;">${{ p.price }}</del></h3>
-                    {% else %}
-                        <h3 style="color:#fe980f;">${{ p.price }}</h3>
-                    {% endif %}
+            {# ===== CỘT TRÁI: bộ lọc ===== #}
+            <div class="col-sm-3">
+                <div class="left-sidebar">
 
-                    <p><a href="{% url 'product_detail' p.id %}">{{ p.title }}</a></p>
-                    <p style="color:#999;">
-                        {{ p.category|default:'' }}{% if p.category and p.brand %} - {% endif %}{{ p.brand|default:'' }}
-                    </p>
-                    {% if p.status == 1 %}
-                        <span class="label label-danger">SALE</span>
-                    {% else %}
-                        <span class="label label-success">NEW</span>
-                    {% endif %}
-                    <p style="margin-top:10px;">
-                        <a href="{% url 'product_detail' p.id %}" class="btn btn-default">Xem chi tiết</a>
-                    </p>
+                    {% include 'product/_sidebar_filters.html' %}
+
+                    {# Thanh trượt giá: kéo xong bấm 'Lọc giá' => gửi price=min,max lên server (GET) #}
+                    <div class="price-range">
+                        <h2>Khoảng giá</h2>
+                        <form method="GET" action="{% url 'product_list' %}">
+                            {# giữ lại các điều kiện đang lọc #}
+                            {% if q %}<input type="hidden" name="q" value="{{ q }}">{% endif %}
+                            {% if category_id %}<input type="hidden" name="category" value="{{ category_id }}">{% endif %}
+                            {% if brand_id %}<input type="hidden" name="brand" value="{{ brand_id }}">{% endif %}
+                            {% if sort %}<input type="hidden" name="sort" value="{{ sort }}">{% endif %}
+                            <div class="well">
+                                <input type="text" class="span2" name="price" id="sl2"
+                                       value="{{ slider_min_now }},{{ slider_max_now }}"
+                                       data-slider-min="0" data-slider-max="{{ slider_max }}" data-slider-step="1"
+                                       data-slider-value="[{{ slider_min_now }},{{ slider_max_now }}]"><br>
+                                <b>$ <span id="price-low">{{ slider_min_now }}</span></b> <b class="pull-right">$ <span id="price-high">{{ slider_max_now }}</span></b>
+                            </div>
+                            <button type="submit" class="btn btn-default btn-sm">Lọc giá</button>
+                            {% if has_filter %}<a href="{% url 'product_list' %}" class="btn btn-link btn-sm">Xóa bộ lọc</a>{% endif %}
+                        </form>
+                    </div>
+
                 </div>
             </div>
-            {% empty %}
-            <p class="text-center">Chưa có sản phẩm nào.</p>
-            {% endfor %}
+
+            {# ===== CỘT PHẢI: danh sách sản phẩm ===== #}
+            <div class="col-sm-9 padding-right">
+                <div class="features_items">
+                    <h2 class="title text-center">Sản phẩm ({{ total }})</h2>
+
+                    {# thanh thông tin + sắp xếp #}
+                    <div class="col-sm-12" style="margin-bottom:20px;">
+                        <span class="pull-left" style="padding-top:6px; color:#696763;">
+                            {% if total %}Hiển thị {{ page_obj.start_index }} - {{ page_obj.end_index }} / {{ total }} sản phẩm{% endif %}
+                            {% if q %}&nbsp;cho từ khóa <b>"{{ q }}"</b>{% endif %}
+                        </span>
+                        <div class="pull-right">
+                            <label style="font-weight:normal; margin-right:5px;">Sắp xếp:</label>
+                            <select onchange="window.location = this.value;" style="padding:5px;">
+                                {% for o in sort_options %}
+                                    <option value="{{ o.url }}" {% if o.selected %}selected{% endif %}>{{ o.label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                    {% for p in page_obj %}
+                        {% include 'product/_product_card.html' %}
+                    {# cứ 3 sản phẩm thì xuống dòng, tránh bị lệch hàng do chiều cao khác nhau #}
+                    {% if forloop.counter|divisibleby:3 %}<div class="clearfix"></div>{% endif %}
+                    {% empty %}
+                    <p class="text-center">Không tìm thấy sản phẩm nào.</p>
+                    {% endfor %}
+
+                    {# ===== Phân trang ===== #}
+                    {% if page_obj.paginator.num_pages > 1 %}
+                    <div class="col-sm-12 text-center">
+                        <ul class="pagination">
+                            {% if page_obj.has_previous %}
+                                <li><a href="?{{ page_query }}{% if page_query %}&{% endif %}page={{ page_obj.previous_page_number }}">&laquo;</a></li>
+                            {% endif %}
+                            {% for n in page_obj.paginator.page_range %}
+                                <li {% if n == page_obj.number %}class="active"{% endif %}><a href="?{{ page_query }}{% if page_query %}&{% endif %}page={{ n }}">{{ n }}</a></li>
+                            {% endfor %}
+                            {% if page_obj.has_next %}
+                                <li><a href="?{{ page_query }}{% if page_query %}&{% endif %}page={{ page_obj.next_page_number }}">&raquo;</a></li>
+                            {% endif %}
+                        </ul>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
         </div>
     </div>
 </section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    {# thanh trượt chỉ báo sự kiện 'slide', ta tự ghi giá trị vào ô input (để gửi lên server) và cập nhật 2 con số #}
+    $('#sl2').on('slide', function (ev) {
+        $(this).val(ev.value[0] + ',' + ev.value[1]);
+        $('#price-low').text(ev.value[0]);
+        $('#price-high').text(ev.value[1]);
+    });
+</script>
 {% endblock %}
