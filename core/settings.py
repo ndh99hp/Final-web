@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'users',
     'blog',
     'product',
+    'cart',
 ]
 
 MIDDLEWARE = [
@@ -130,6 +131,33 @@ MAILERS = {
         'BACKEND': 'django.core.mail.backends.console.EmailBackend',
     },
 }
+# ===================== GỬI MAIL =====================
+# Cách hoạt động: Django đọc 2 biến môi trường EMAIL_USER và EMAIL_PASS (đặt trong terminal TRƯỚC khi chạy runserver).
+#  - Có đủ 2 biến  -> gửi mail THẬT qua Gmail (SMTP).
+#  - Thiếu 1 trong 2 -> chỉ in nội dung mail ra terminal (để test, không cần mạng, không lỗi).
+# Lý do dùng biến môi trường: mật khẩu không nằm trong code nên push GitHub không bị lộ.
+#
+# Cách đặt biến (trong terminal của VS Code, rồi chạy runserver ở CÙNG terminal đó):
+#   PowerShell:  $env:EMAIL_USER="email-cua-ban@gmail.com"
+#                $env:EMAIL_PASS="mat-khau-ung-dung-16-ky-tu"
+#   CMD:         set EMAIL_USER=email-cua-ban@gmail.com
+#                set EMAIL_PASS=mat-khau-ung-dung-16-ky-tu
+# EMAIL_PASS là "Mật khẩu ứng dụng" (App password) của Google, KHÔNG phải mật khẩu đăng nhập Gmail.
+EMAIL_USER = os.environ.get('EMAIL_USER', '')
+EMAIL_PASS = os.environ.get('EMAIL_PASS', '')
+
+if EMAIL_USER and EMAIL_PASS:
+    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+    EMAIL_HOST = 'smtp.gmail.com'
+    EMAIL_PORT = 587
+    EMAIL_USE_TLS = True
+    EMAIL_HOST_USER = EMAIL_USER
+    EMAIL_HOST_PASSWORD = EMAIL_PASS
+    EMAIL_TIMEOUT = 15          # quá 15 giây không gửi được thì báo lỗi, không để web bị treo
+    DEFAULT_FROM_EMAIL = 'E-Shopper <' + EMAIL_USER + '>'
+else:
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+    DEFAULT_FROM_EMAIL = 'E-Shopper <noreply@eshopper.local>'
 AUTH_USER_MODEL = 'users.User'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'

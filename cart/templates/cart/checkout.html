@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+{# Trang thanh toán: thông tin người mua (+ đăng ký nhanh nếu chưa đăng nhập) và tóm tắt đơn hàng #}
+{% load static %}
+{% block title %}Thanh toán{% endblock %}
+
+{% block content %}
+<section id="cart_items">
+    <div class="container">
+        <div class="breadcrumbs">
+            <ol class="breadcrumb">
+                <li><a href="{% url 'home' %}">Trang chủ</a></li>
+                <li><a href="{% url 'cart' %}">Giỏ hàng</a></li>
+                <li class="active">Thanh toán</li>
+            </ol>
+        </div>
+
+        {% if error %}
+            <div class="alert alert-danger">{{ error }}</div>
+        {% endif %}
+
+        <form method="POST">
+            {% csrf_token %}
+            <div class="row">
+
+                {# ===== Cột trái: thông tin người mua ===== #}
+                <div class="col-sm-5">
+                    <div style="background:#fff; padding:25px; box-shadow:0 0 10px rgba(0,0,0,0.1);">
+                        <h3 style="margin-top:0;">Thông tin người mua</h3>
+                        <label>Họ tên *</label>
+                        <input type="text" name="name" class="form-control" value="{{ form.name|default:'' }}" maxlength="100" required style="margin-bottom:15px;">
+                        <label>Email * <small class="text-muted">(thông tin đơn hàng sẽ gửi vào đây)</small></label>
+                        <input type="email" name="email" class="form-control" value="{{ form.email|default:'' }}" required style="margin-bottom:15px;">
+                        <label>Số điện thoại *</label>
+                        <input type="text" name="phone" class="form-control" value="{{ form.phone|default:'' }}" maxlength="16" required style="margin-bottom:15px;">
+
+                        {% if need_register %}
+                            {# chưa đăng nhập: đăng ký nhanh ngay tại đây #}
+                            <hr>
+                            <h3>Đăng ký nhanh</h3>
+                            <p>Đã có tài khoản? <a href="{% url 'login' %}?next={% url 'checkout' %}">Đăng nhập</a> rồi quay lại thanh toán.</p>
+                            <label>Tên đăng nhập *</label>
+                            <input type="text" name="username" class="form-control" value="{{ form.username|default:'' }}" maxlength="150" required style="margin-bottom:15px;">
+                            <label>Mật khẩu * <small class="text-muted">(từ 6 ký tự)</small></label>
+                            <input type="password" name="password" class="form-control" required style="margin-bottom:15px;">
+                            <label>Nhập lại mật khẩu *</label>
+                            <input type="password" name="password2" class="form-control" required style="margin-bottom:15px;">
+                        {% else %}
+                            <p class="text-muted" style="margin-bottom:0;">Đặt hàng với tài khoản <b>{{ user.username }}</b>.</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                {# ===== Cột phải: tóm tắt đơn hàng ===== #}
+                <div class="col-sm-7">
+                    <div class="table-responsive cart_info" style="margin-bottom:20px;">
+                        <table class="table table-condensed">
+                            <thead>
+                                <tr class="cart_menu">
+                                    <td class="image">Sản phẩm</td>
+                                    <td class="description"></td>
+                                    <td class="price">Giá</td>
+                                    <td class="quantity">SL</td>
+                                    <td class="total">Thành tiền</td>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in cart %}
+                                <tr>
+                                    <td class="cart_product">
+                                        {% if item.image %}
+                                            <img src="{{ MEDIA_URL }}{{ item.image }}" alt="" width="70" height="70" style="object-fit:cover;">
+                                        {% else %}
+                                            <img src="{% static 'images/home/product1.jpg' %}" alt="" width="70" height="70" style="object-fit:cover;">
+                                        {% endif %}
+                                    </td>
+                                    <td class="cart_description"><h4><a href="{% url 'product_detail' item.id %}">{{ item.title }}</a></h4></td>
+                                    <td class="cart_price"><p>${{ item.price|floatformat:2 }}</p></td>
+                                    <td class="cart_quantity"><p>{{ item.qty }}</p></td>
+                                    <td class="cart_total"><p class="cart_total_price">${{ item.total|floatformat:2 }}</p></td>
+                                </tr>
+                                {% endfor %}
+                                <tr>
+                                    <td colspan="3">&nbsp;</td>
+                                    <td colspan="2">
+                                        <table class="table table-condensed total-result">
+                                            <tr><td>Tổng tiền</td><td><span>${{ grand_total|floatformat:2 }}</span></td></tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <a href="{% url 'cart' %}" class="btn btn-default">Quay lại giỏ hàng</a>
+                    <button type="submit" class="btn btn-primary" style="margin:0 0 0 10px;">Đặt hàng (Order)</button>
+                </div>
+
+            </div>
+        </form>
+    </div>
+</section>
+{% endblock %}

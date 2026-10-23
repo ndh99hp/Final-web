@@ -18,14 +18,15 @@
                     <h2>${{ p.price }}</h2>
                 {% endif %}
                 <p><a href="{% url 'product_detail' p.id %}" style="color:inherit;">{{ p.title }}</a></p>
-                {# TODO: nút 'Add to cart' sẽ thêm sau khi làm xong giỏ hàng #}
-                <a href="{% url 'product_detail' p.id %}" class="btn btn-default"><i class="fa fa-eye"></i> Xem chi tiết</a>
+                {# nút Add to cart: file static/js/cart.js bắt sự kiện click, lấy data-id rồi gửi AJAX #}
+                <a href="#" class="btn btn-default btn-add-cart" data-id="{{ p.id }}"><i class="fa fa-shopping-cart"></i> Thêm vào giỏ</a>
             </div>
             {# lớp phủ hiện ra khi rê chuột vào sản phẩm #}
             <div class="product-overlay">
                 <div class="overlay-content">
                     {% if p.status == 1 %}<h2>${{ p.sale }}</h2>{% else %}<h2>${{ p.price }}</h2>{% endif %}
                     <p>{{ p.title }}</p>
+                    <a href="#" class="btn btn-default add-to-cart btn-add-cart" data-id="{{ p.id }}"><i class="fa fa-shopping-cart"></i> Thêm vào giỏ</a>
                     <a href="{% url 'product_detail' p.id %}" class="btn btn-default add-to-cart"><i class="fa fa-eye"></i> Xem chi tiết</a>
                 </div>
             </div>

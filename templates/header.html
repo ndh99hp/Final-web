@@ -10,7 +10,7 @@
             <div class="row">
                 <div class="col-md-4 clearfix">
                     <div class="logo pull-left">
-                        <a href="{% url 'blog_list' %}"><img src="{% static 'images/home/logo.png' %}" alt="E-Shopper"></a>
+                        <a href="{% url 'home' %}"><img src="{% static 'images/home/logo.png' %}" alt="E-Shopper"></a>
                     </div>
                 </div>
                 <div class="col-md-8 clearfix">
@@ -23,10 +23,9 @@
                                     <li><a href="{% url 'list_users' %}" {% if page == 'list_users' %}class="active"{% endif %}><i class="fa fa-users"></i> Quản lý user</a></li>
                                 {% endif %}
                             {% endif %}
-                            {# TODO: thay '#' bằng {% url %} khi làm xong app cart/checkout #}
-                            <li><a href="#"><i class="fa fa-crosshairs"></i> Thanh toán</a></li>
-                            {# id="cart-counter": sau này AJAX 'thêm vào giỏ' sẽ cập nhật số này. Chưa có giỏ thì hiện 0 #}
-                            <li><a href="#"><i class="fa fa-shopping-cart"></i> Giỏ hàng (<span id="cart-counter">{{ request.session.cart|length }}</span>)</a></li>
+                            <li><a href="{% url 'checkout' %}" {% if page == 'checkout' %}class="active"{% endif %}><i class="fa fa-crosshairs"></i> Thanh toán</a></li>
+                            {# id="cart-counter": AJAX 'thêm vào giỏ' (static/js/cart.js) cập nhật số này. Chưa có giỏ thì hiện 0 #}
+                            <li><a href="{% url 'cart' %}" {% if page == 'cart' %}class="active"{% endif %}><i class="fa fa-shopping-cart"></i> Giỏ hàng (<span id="cart-counter">{{ request.session.cart|length }}</span>)</a></li>
                             {% if user.is_authenticated %}
                                 <li><a href="{% url 'logout' %}"><i class="fa fa-sign-out"></i> Đăng xuất</a></li>
                             {% else %}
@@ -56,11 +55,10 @@
                     </div>
                     <div class="mainmenu pull-left">
                         <ul class="nav navbar-nav collapse navbar-collapse">
-                            {# TODO: khi có trang chủ riêng thì đổi 'blog_list' thành tên url trang chủ #}
-                            <li><a href="{% url 'blog_list' %}">Trang chủ</a></li>
+                            <li><a href="{% url 'home' %}" {% if page == 'home' %}class="active"{% endif %}>Trang chủ</a></li>
 
                             <li class="dropdown">
-                                <a href="#" {% if page == 'product_list' or page == 'product_detail' or page == 'product_create' or page == 'my_products' or page == 'edit_product' %}class="active"{% endif %}>Cửa hàng <i class="fa fa-angle-down"></i></a>
+                                <a href="#" {% if page == 'product_list' or page == 'product_detail' or page == 'product_create' or page == 'my_products' or page == 'edit_product' or page == 'cart' or page == 'checkout' %}class="active"{% endif %}>Cửa hàng <i class="fa fa-angle-down"></i></a>
                                 <ul role="menu" class="sub-menu">
                                     <li><a href="{% url 'product_list' %}">Tất cả sản phẩm</a></li>
                                     {% if user.is_authenticated %}
@@ -69,8 +67,8 @@
                                     {% else %}
                                         <li><a href="{% url 'login' %}">Đăng nhập</a></li>
                                     {% endif %}
-                                    <li><a href="#">Giỏ hàng</a></li>
-                                    <li><a href="#">Thanh toán</a></li>
+                                    <li><a href="{% url 'cart' %}">Giỏ hàng</a></li>
+                                    <li><a href="{% url 'checkout' %}">Thanh toán</a></li>
                                 </ul>
                             </li>
 

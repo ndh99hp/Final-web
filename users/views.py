@@ -7,9 +7,11 @@ from django.contrib.auth.decorators import user_passes_test
 from django.contrib.auth.views import redirect_to_login
 from django.contrib.auth import authenticate, login, logout, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
+from django.utils.http import url_has_allowed_host_and_scheme
 
 
 # Đăng nhập: authenticate() kiểm tra username/password, login() lưu vào session
+# ?next=/checkout/ : đăng nhập xong thì quay lại trang đó (chỉ nhận link trong web mình, tránh bị chuyển sang web lạ)
 def login_view(request):
     if request.method == 'POST':
         username = request.POST.get('username')
@@ -17,7 +19,10 @@ def login_view(request):
         user = authenticate(request, username=username, password=password)
         if user is not None:
             login(request, user)
-            return redirect('blog_list')
+            next_url = request.GET.get('next', '')
+            if next_url and url_has_allowed_host_and_scheme(next_url, allowed_hosts=request.get_host()):
+                return redirect(next_url)
+            return redirect('home')
         else:
             messages.error(request, 'Sai tên đăng nhập hoặc mật khẩu.')
     return render(request, 'users/login.html')

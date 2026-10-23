@@ -126,6 +126,21 @@ def sidebar_data(filters):
     return categories, brands
 
 
+# Trang chủ: hiện 6 sản phẩm mới nhất (theo ngày tạo created_at, bằng nhau thì theo id)
+def home(request):
+    products = Product.objects.order_by('-created_at', '-id')[:6]
+    categories, brands = sidebar_data({})
+    return render(request, 'product/home.html', {
+        'products': products,
+        'categories': categories,
+        'brands': brands,
+        'category_id': '',
+        'brand_id': '',
+        'all_category_url': build_url({}),
+        'all_brand_url': build_url({}),
+    })
+
+
 # Trang /shop/: xem + lọc + sắp xếp sản phẩm.
 # Ví dụ: /shop/?q=ao&category=1&brand=2&price=0,300&sort=price_asc&page=2
 # q = từ khóa | category, brand = id | price = "thấp nhất,cao nhất" | sort = kiểu sắp xếp | page = số trang

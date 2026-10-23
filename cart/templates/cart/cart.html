@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+{# Trang giỏ hàng: bấm + / - / x thì gửi AJAX (xử lý trong static/js/cart.js), không load lại trang #}
+{% load static %}
+{% block title %}Giỏ hàng{% endblock %}
+
+{% block content %}
+<section id="cart_items">
+    <div class="container">
+        <div class="breadcrumbs">
+            <ol class="breadcrumb">
+                <li><a href="{% url 'home' %}">Trang chủ</a></li>
+                <li class="active">Giỏ hàng</li>
+            </ol>
+        </div>
+
+        {# data-update-url: đường dẫn để JS gửi AJAX #}
+        <div class="table-responsive cart_info">
+            <table class="table table-condensed" id="cart-table" data-update-url="{% url 'update_cart' %}">
+                <thead>
+                    <tr class="cart_menu">
+                        <td class="image">Sản phẩm</td>
+                        <td class="description"></td>
+                        <td class="price">Giá</td>
+                        <td class="quantity">Số lượng</td>
+                        <td class="total">Thành tiền</td>
+                        <td></td>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in cart %}
+                    {# data-id: id sản phẩm, JS lấy ra để gửi lên server #}
+                    <tr data-id="{{ item.id }}">
+                        <td class="cart_product">
+                            <a href="{% url 'product_detail' item.id %}">
+                                {% if item.image %}
+                                    <img src="{{ MEDIA_URL }}{{ item.image }}" alt="{{ item.title }}" width="110" height="110" style="object-fit:cover;">
+                                {% else %}
+                                    <img src="{% static 'images/home/product1.jpg' %}" alt="{{ item.title }}" width="110" height="110" style="object-fit:cover;">
+                                {% endif %}
+                            </a>
+                        </td>
+                        <td class="cart_description">
+                            <h4><a href="{% url 'product_detail' item.id %}">{{ item.title }}</a></h4>
+                            <p>Mã sản phẩm: {{ item.id }}</p>
+                        </td>
+                        <td class="cart_price">
+                            <p>${{ item.price|floatformat:2 }}</p>
+                        </td>
+                        <td class="cart_quantity">
+                            <div class="cart_quantity_button">
+                                <a class="cart_quantity_up" style="cursor:pointer;"> + </a>
+                                <input class="cart_quantity_input" type="text" value="{{ item.qty }}" autocomplete="off" size="2" readonly>
+                                <a class="cart_quantity_down" style="cursor:pointer;"> - </a>
+                            </div>
+                        </td>
+                        <td class="cart_total">
+                            <p class="cart_total_price">${{ item.total|floatformat:2 }}</p>
+                        </td>
+                        <td class="cart_delete">
+                            <a class="cart_quantity_delete" style="cursor:pointer;" title="Xóa khỏi giỏ"><i class="fa fa-times"></i></a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    {# dòng này hiện ra khi giỏ hàng trống (JS cũng dùng lại khi xóa hết sản phẩm) #}
+                    <tr id="empty-row" {% if cart %}style="display:none;"{% endif %}>
+                        <td colspan="6" class="text-center" style="padding:40px; font-size:18px;">
+                            Giỏ hàng của bạn đang trống. <a href="{% url 'product_list' %}">Đi mua sắm</a>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+
+<section id="do_action">
+    <div class="container">
+        <div class="row">
+            <div class="col-sm-6 col-sm-offset-6">
+                <div class="total_area">
+                    <ul>
+                        <li>Tổng tiền <span id="grand-total">${{ grand_total|floatformat:2 }}</span></li>
+                    </ul>
+                    <a class="btn btn-default update" href="{% url 'product_list' %}">Tiếp tục mua sắm</a>
+                    <a class="btn btn-default check_out" href="{% url 'checkout' %}">Thanh toán</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

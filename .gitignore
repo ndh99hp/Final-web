@@ -6,3 +6,5 @@ db.sqlite3
 .env
 *.zip
 .vscode/
+static/uploads/
+*.sqlite3

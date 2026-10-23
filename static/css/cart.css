@@ -1,0 +1,13 @@
+/* cart.css: chỉnh nhỏ cho trang giỏ hàng / thanh toán */
+
+/* Mũi tên cam của breadcrumb trong theme đặt cố định ở vị trí chữ "Home" nên đè lên chữ "Trang chủ".
+   Cho mũi tên bám theo bên phải của từng mục */
+.breadcrumbs .breadcrumb li a {
+    position: relative;
+    margin-right: 8px;
+}
+
+.breadcrumbs .breadcrumb li a:after {
+    left: 100%;
+    top: 3px;
+}

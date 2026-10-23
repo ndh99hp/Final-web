@@ -1,0 +1,32 @@
+{# Nội dung mail gửi cho người mua (HTML). Mail chỉ nên dùng style viết trực tiếp (inline) #}
+<div style="font-family:Arial,sans-serif; max-width:600px; margin:0 auto; color:#333;">
+    <h2 style="background:#fe980f; color:#fff; padding:15px; margin:0;">E-SHOPPER - Xác nhận đơn hàng</h2>
+    <div style="border:1px solid #eee; padding:20px;">
+        <p>Xin chào <b>{{ h.name }}</b>,</p>
+        <p>Cảm ơn bạn đã đặt hàng. Thông tin đơn hàng <b>#{{ h.id }}</b> ({{ h.created_at|date:'d/m/Y H:i' }}):</p>
+        <table style="border-collapse:collapse; width:100%;">
+            <tr style="background:#f7f7f0;">
+                <th style="border:1px solid #ddd; padding:8px; text-align:left;">Sản phẩm</th>
+                <th style="border:1px solid #ddd; padding:8px;">Giá</th>
+                <th style="border:1px solid #ddd; padding:8px;">SL</th>
+                <th style="border:1px solid #ddd; padding:8px; text-align:right;">Thành tiền</th>
+            </tr>
+            {% for item in cart %}
+            <tr>
+                <td style="border:1px solid #ddd; padding:8px;">{{ item.title }}</td>
+                <td style="border:1px solid #ddd; padding:8px; text-align:center;">${{ item.price|floatformat:2 }}</td>
+                <td style="border:1px solid #ddd; padding:8px; text-align:center;">{{ item.qty }}</td>
+                <td style="border:1px solid #ddd; padding:8px; text-align:right;">${{ item.total|floatformat:2 }}</td>
+            </tr>
+            {% endfor %}
+            <tr>
+                <td colspan="3" style="border:1px solid #ddd; padding:8px; text-align:right;"><b>Tổng tiền</b></td>
+                <td style="border:1px solid #ddd; padding:8px; text-align:right; color:#fe980f;"><b>${{ grand_total|floatformat:2 }}</b></td>
+            </tr>
+        </table>
+        <p style="margin-top:20px;"><b>Người nhận:</b> {{ h.name }}<br>
+        <b>Email:</b> {{ h.email }}<br>
+        <b>Điện thoại:</b> {{ h.phone }}</p>
+        <p>Chúc bạn một ngày tốt lành!</p>
+    </div>
+</div>

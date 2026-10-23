@@ -3,6 +3,8 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
+    # trang chủ: 6 sản phẩm mới nhất
+    path('', views.home, name='home'),
     # trang xem tất cả sản phẩm (ai cũng xem được)
     path('shop/', views.product_list, name='product_list'),
     # <int:product_id> = id của sản phẩm trong database

@@ -14,9 +14,11 @@
     <link href="{% static 'css/main.css' %}" rel="stylesheet">
     <link href="{% static 'css/responsive.css' %}" rel="stylesheet">
     <link href="{% static 'css/rate.css' %}" rel="stylesheet">
+    <link href="{% static 'css/cart.css' %}" rel="stylesheet">
     {% block styles %}{% endblock %}
 </head>
-<body>
+<body data-add-cart-url="{% url 'add_to_cart' %}" data-csrf="{{ csrf_token }}">
+    {# data-add-cart-url, data-csrf: file static/js/cart.js đọc 2 giá trị này để gửi AJAX #}
     {% include 'header.html' %}
 
     {% if messages %}
@@ -39,6 +41,7 @@
     <script src="{% static 'js/bootstrap.min.js' %}"></script>
     <script src="{% static 'js/jquery.prettyPhoto.js' %}"></script>
     <script src="{% static 'js/main.js' %}"></script>
+    <script src="{% static 'js/cart.js' %}"></script>
     {% block scripts %}{% endblock %}
 </body>
 </html>
