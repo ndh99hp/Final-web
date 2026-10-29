@@ -131,33 +131,26 @@ MAILERS = {
         'BACKEND': 'django.core.mail.backends.console.EmailBackend',
     },
 }
-# ===================== GỬI MAIL =====================
-# Cách hoạt động: Django đọc 2 biến môi trường EMAIL_USER và EMAIL_PASS (đặt trong terminal TRƯỚC khi chạy runserver).
-#  - Có đủ 2 biến  -> gửi mail THẬT qua Gmail (SMTP).
-#  - Thiếu 1 trong 2 -> chỉ in nội dung mail ra terminal (để test, không cần mạng, không lỗi).
-# Lý do dùng biến môi trường: mật khẩu không nằm trong code nên push GitHub không bị lộ.
-#
-# Cách đặt biến (trong terminal của VS Code, rồi chạy runserver ở CÙNG terminal đó):
-#   PowerShell:  $env:EMAIL_USER="email-cua-ban@gmail.com"
-#                $env:EMAIL_PASS="mat-khau-ung-dung-16-ky-tu"
-#   CMD:         set EMAIL_USER=email-cua-ban@gmail.com
-#                set EMAIL_PASS=mat-khau-ung-dung-16-ky-tu
-# EMAIL_PASS là "Mật khẩu ứng dụng" (App password) của Google, KHÔNG phải mật khẩu đăng nhập Gmail.
-EMAIL_USER = os.environ.get('EMAIL_USER', '')
-EMAIL_PASS = os.environ.get('EMAIL_PASS', '')
+# ===================== GỬI MAIL (theo Bài 18: Send mail - gmail) =====================
+# Cách hoạt động: Django đăng nhập vào Gmail (SMTP) bằng EMAIL_HOST_USER + EMAIL_HOST_PASSWORD rồi nhờ Gmail gửi thư.
+# Người nhận là email khách nhập, người gửi là Gmail khai báo ở đây.
+# Cách lấy App Password: bật xác minh 2 bước tại https://myaccount.google.com/security
+#   rồi tạo mật khẩu ứng dụng tại https://myaccount.google.com/apppasswords (Google cho 1 mật khẩu 16 ký tự).
+# >>> Điền Gmail và App Password của bạn vào 2 dòng bên dưới (App Password KHÔNG phải mật khẩu đăng nhập Gmail).
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'your_gmail@gmail.com'
+EMAIL_HOST_PASSWORD = 'your_app_password'      # Phải dùng App Password
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+EMAIL_TIMEOUT = 15                             # quá 15 giây không gửi được thì báo lỗi, không để web bị treo
 
-if EMAIL_USER and EMAIL_PASS:
-    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-    EMAIL_HOST = 'smtp.gmail.com'
-    EMAIL_PORT = 587
-    EMAIL_USE_TLS = True
-    EMAIL_HOST_USER = EMAIL_USER
-    EMAIL_HOST_PASSWORD = EMAIL_PASS
-    EMAIL_TIMEOUT = 15          # quá 15 giây không gửi được thì báo lỗi, không để web bị treo
-    DEFAULT_FROM_EMAIL = 'E-Shopper <' + EMAIL_USER + '>'
-else:
+# Nếu chưa điền (vẫn là 'your_...') thì chỉ in mail ra cửa sổ terminal để test, web không bị lỗi
+if EMAIL_HOST_USER == 'your_gmail@gmail.com' or EMAIL_HOST_PASSWORD == 'your_app_password':
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
     DEFAULT_FROM_EMAIL = 'E-Shopper <noreply@eshopper.local>'
+# LƯU Ý: đừng push file này lên GitHub khi đã điền mật khẩu thật. Trước khi push hãy trả 2 dòng về 'your_gmail@gmail.com' / 'your_app_password'.
 AUTH_USER_MODEL = 'users.User'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'

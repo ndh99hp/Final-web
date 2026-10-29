@@ -8,6 +8,9 @@ from django.contrib.auth.views import redirect_to_login
 from django.contrib.auth import authenticate, login, logout, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
 from django.utils.http import url_has_allowed_host_and_scheme
+from django.conf import settings
+from django.core.mail import EmailMultiAlternatives
+from django.template.loader import render_to_string
 
 
 # Đăng nhập: authenticate() kiểm tra username/password, login() lưu vào session
@@ -26,6 +29,30 @@ def login_view(request):
         else:
             messages.error(request, 'Sai tên đăng nhập hoặc mật khẩu.')
     return render(request, 'users/login.html')
+
+# Gửi mail chào mừng cho user vừa đăng ký (làm theo Bài 18: Send mail)
+# Trả về True nếu gửi được. Gửi lỗi (sai App Password, mất mạng...) thì in lý do ra terminal và trả về False
+def send_welcome_email(user, site_url):
+    subject = 'Chào mừng bạn đến với website!'
+    from_email = settings.DEFAULT_FROM_EMAIL
+    to = [user.email]
+
+    # Nội dung text fallback (cho mail client không hiện được HTML)
+    text_content = f"Chào {user.username}, cảm ơn bạn đã đăng ký."
+
+    # Render HTML từ template
+    html_content = render_to_string('emails/welcome_email.html', {'user': user, 'site_url': site_url})
+
+    # Gửi email
+    try:
+        msg = EmailMultiAlternatives(subject, text_content, from_email, to)
+        msg.attach_alternative(html_content, "text/html")
+        msg.send()
+        return True
+    except Exception as e:
+        print('LỖI GỬI MAIL:', e)
+        return False
+
 
 # Đăng ký tài khoản thường: kiểm tra mật khẩu nhập lại + trùng username rồi tạo user
 def register_view(request):
@@ -62,7 +89,14 @@ def register_view(request):
             user.avatar = avatar
         user.save()
 
-        messages.success(request, 'Đăng ký thành công! Vui lòng đăng nhập.')
+        # Đăng ký xong thì gửi mail chào mừng tới email vừa nhập
+        mail_ok = send_welcome_email(user, request.build_absolute_uri('/'))
+        if mail_ok and 'console' in settings.EMAIL_BACKEND:
+            messages.success(request, 'Đăng ký thành công! Vui lòng đăng nhập. (Đang ở chế độ test: mail chỉ in ra terminal, chưa gửi thật)')
+        elif mail_ok:
+            messages.success(request, 'Đăng ký thành công, đã gửi mail chào mừng tới ' + user.email + '. Vui lòng đăng nhập.')
+        else:
+            messages.success(request, 'Đăng ký thành công! Vui lòng đăng nhập. (Chưa gửi được mail chào mừng, hãy kiểm tra cấu hình mail)')
         return redirect('login')
 
     return render(request, 'users/register.html', {'countries': countries})

@@ -7,6 +7,9 @@ urlpatterns = [
     path('', views.home, name='home'),
     # trang xem tất cả sản phẩm (ai cũng xem được)
     path('shop/', views.product_list, name='product_list'),
+    # tìm kiếm nâng cao: trang form + đường dẫn AJAX trả về kết quả (JSON)
+    path('search-advanced/', views.search_advanced, name='search_advanced'),
+    path('search-advanced/ajax/', views.search_advanced_ajax, name='search_advanced_ajax'),
     # <int:product_id> = id của sản phẩm trong database
     path('shop/<int:product_id>/', views.product_detail, name='product_detail'),
     # các trang dưới đây của menu Account (phải đăng nhập)

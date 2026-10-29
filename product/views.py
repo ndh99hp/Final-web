@@ -2,9 +2,11 @@
 import json
 from decimal import Decimal, InvalidOperation
 from urllib.parse import urlencode
+from django.http import JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 from django.contrib import messages
+from django.template.loader import render_to_string
 from django.core.paginator import Paginator
 from django.db.models import Case, Count, DecimalField, F, Max, Q, When
 from django.contrib.auth.decorators import login_required
@@ -141,18 +143,23 @@ def home(request):
     })
 
 
-# Trang /shop/: xem + lọc + sắp xếp sản phẩm.
-# Ví dụ: /shop/?q=ao&category=1&brand=2&price=0,300&sort=price_asc&page=2
-# q = từ khóa | category, brand = id | price = "thấp nhất,cao nhất" | sort = kiểu sắp xếp | page = số trang
-def product_list(request):
-    # giá hiện hành: sản phẩm Sale (status=1) lấy giá sale, sản phẩm New lấy giá gốc
-    products = Product.objects.annotate(
+# Lấy tất cả sản phẩm kèm cột final_price = giá hiện hành:
+# sản phẩm Sale (status=1) lấy giá sale, sản phẩm New lấy giá gốc. Dùng chung cho /shop/ và tìm kiếm nâng cao
+def products_with_final_price():
+    return Product.objects.annotate(
         final_price=Case(
             When(status=1, then=F('sale')),
             default=F('price'),
             output_field=DecimalField(),
         )
     )
+
+
+# Trang /shop/: xem + lọc + sắp xếp sản phẩm.
+# Ví dụ: /shop/?q=ao&category=1&brand=2&price=0,300&sort=price_asc&page=2
+# q = từ khóa | category, brand = id | price = "thấp nhất,cao nhất" | sort = kiểu sắp xếp | page = số trang
+def product_list(request):
+    products = products_with_final_price()
 
     q = request.GET.get('q', '').strip()
     category_id = request.GET.get('category', '')
@@ -234,6 +241,78 @@ def product_list(request):
         'slider_min_now': slider_min_now,
         'slider_max_now': slider_max_now,
     })
+
+
+# ---------- Tìm kiếm nâng cao (menu "Tìm kiếm nâng cao") ----------
+
+# Các khoảng giá cho ô "Chọn giá". value gửi lên có dạng "thấp-cao", ví dụ "10-50"
+PRICE_RANGES = [
+    ('0-10', 'Dưới $10'),
+    ('10-50', '$10 - $50'),
+    ('50-100', '$50 - $100'),
+    ('100-500', '$100 - $500'),
+    ('500-1000', '$500 - $1000'),
+    ('1000-99999999', 'Trên $1000'),
+]
+
+
+# Lọc sản phẩm theo 5 điều kiện: name, price, category, brand, status.
+# Điều kiện nào không chọn thì bỏ qua => không chọn gì cả thì ra tất cả sản phẩm
+def filter_search_advanced(params):
+    products = products_with_final_price()
+
+    name = params.get('name', '').strip()
+    price = params.get('price', '')
+    category_id = params.get('category', '')
+    brand_id = params.get('brand', '')
+    status = params.get('status', '')
+
+    if name:
+        products = products.filter(title__icontains=name)           # SQL LIKE '%name%'
+    if price in dict(PRICE_RANGES):                                   # chỉ nhận các khoảng giá có trong danh sách
+        low, high = price.split('-')
+        products = products.filter(final_price__range=(Decimal(low), Decimal(high)))   # SQL BETWEEN
+    if is_id(category_id):
+        products = products.filter(category_id=category_id)
+    if is_id(brand_id):
+        products = products.filter(brand_id=brand_id)
+    if status in ('0', '1'):                                          # 0 = New, 1 = Sale
+        products = products.filter(status=status)
+
+    return products.order_by('-id')
+
+
+# Tạo đoạn HTML "danh sách sản phẩm + phân trang" (9 sản phẩm / trang) để đưa vào trang hoặc trả về cho AJAX
+def build_search_results(request, params):
+    page_obj = Paginator(filter_search_advanced(params), 9).get_page(params.get('page'))
+    html = render_to_string('product/_search_results.html', {
+        'page_obj': page_obj,
+        'total': page_obj.paginator.count,
+    }, request=request)
+    return html, page_obj.paginator.count
+
+
+# Trang tìm kiếm nâng cao: hiện form + tất cả sản phẩm. Khi người dùng chọn điều kiện, file static/js/search.js
+# gọi AJAX tới search_advanced_ajax bên dưới và thay phần kết quả (không load lại trang)
+def search_advanced(request):
+    results_html, total = build_search_results(request, {})
+    categories, brands = sidebar_data({})
+    return render(request, 'product/search_advanced.html', {
+        'results_html': results_html,
+        'price_ranges': PRICE_RANGES,
+        'categories': categories,
+        'brands': brands,
+        'category_id': '',
+        'brand_id': '',
+        'all_category_url': build_url({}),
+        'all_brand_url': build_url({}),
+    })
+
+
+# AJAX: nhận điều kiện lọc (GET) rồi trả về JSON {html: ..., total: ...}
+def search_advanced_ajax(request):
+    html, total = build_search_results(request, request.GET)
+    return JsonResponse({'html': html, 'total': total})
 
 
 # Trang thêm sản phẩm. @login_required = chưa đăng nhập thì chuyển về trang login

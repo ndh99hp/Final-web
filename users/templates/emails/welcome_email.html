@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Chào mừng!</title>
+</head>
+<body>
+  <h2>Chào {{ user.username }}!</h2>
+  <p>Cảm ơn bạn đã đăng ký tài khoản với chúng tôi.</p>
+  <p>Vui lòng nhấn vào nút bên dưới để truy cập website:</p>
+
+  <p>
+    <a href="{{ site_url }}" style="
+       background-color: #FE980F;
+       color: white;
+       padding: 10px 20px;
+       text-decoration: none;
+       border-radius: 5px;
+    ">Truy cập website</a>
+  </p>
+
+  <p>Chúc bạn một ngày tốt lành!</p>
+</body>
+</html>

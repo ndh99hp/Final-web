@@ -1,0 +1,30 @@
+{# Phần kết quả của trang Tìm kiếm nâng cao: dòng đếm + lưới sản phẩm + phân trang #}
+{# Được render lần đầu trong search_advanced.html và được AJAX (search_advanced_ajax) trả về mỗi lần lọc #}
+<div class="col-sm-12" style="margin-bottom:15px; color:#696763;">
+    {% if total %}Tìm thấy <b>{{ total }}</b> sản phẩm (đang xem {{ page_obj.start_index }} - {{ page_obj.end_index }}){% endif %}
+</div>
+
+{% for p in page_obj %}
+    {% include 'product/_product_card.html' %}
+    {# cứ 3 sản phẩm thì xuống dòng #}
+    {% if forloop.counter|divisibleby:3 %}<div class="clearfix"></div>{% endif %}
+{% empty %}
+    <p class="text-center">Không tìm thấy sản phẩm nào.</p>
+{% endfor %}
+
+{# Phân trang: link có class search-page, số trang nằm trong data-page, search.js sẽ bắt click và gửi AJAX #}
+{% if page_obj.paginator.num_pages > 1 %}
+<div class="col-sm-12 text-center">
+    <ul class="pagination">
+        {% if page_obj.has_previous %}
+            <li><a href="#" class="search-page" data-page="{{ page_obj.previous_page_number }}">&laquo;</a></li>
+        {% endif %}
+        {% for n in page_obj.paginator.page_range %}
+            <li {% if n == page_obj.number %}class="active"{% endif %}><a href="#" class="search-page" data-page="{{ n }}">{{ n }}</a></li>
+        {% endfor %}
+        {% if page_obj.has_next %}
+            <li><a href="#" class="search-page" data-page="{{ page_obj.next_page_number }}">&raquo;</a></li>
+        {% endif %}
+    </ul>
+</div>
+{% endif %}

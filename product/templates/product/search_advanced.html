@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+{# Trang Tìm kiếm nâng cao: form 5 ô (Name, Price, Category, Brand, Status), kết quả lọc bằng AJAX #}
+{% load static %}
+{% block title %}Tìm kiếm nâng cao{% endblock %}
+
+{% block content %}
+<section>
+    <div class="container" style="padding-top:30px;">
+        <div class="row">
+
+            {# ===== CỘT TRÁI: danh mục + thương hiệu ===== #}
+            <div class="col-sm-3">
+                <div class="left-sidebar">
+                    {% include 'product/_sidebar_filters.html' %}
+                </div>
+            </div>
+
+            {# ===== CỘT PHẢI ===== #}
+            <div class="col-sm-9 padding-right">
+                <div class="features_items">
+                    <h2 class="title text-center">Tìm kiếm nâng cao</h2>
+
+                    {# data-url: đường dẫn AJAX, file static/js/search.js đọc để gửi yêu cầu #}
+                    <form id="search-form" data-url="{% url 'search_advanced_ajax' %}" method="GET" action="{% url 'search_advanced' %}">
+                        <div class="row" style="margin-bottom:15px;">
+                            <div class="col-sm-3">
+                                <input type="text" name="name" class="form-control" placeholder="Tên sản phẩm" autocomplete="off">
+                            </div>
+                            <div class="col-sm-2">
+                                <select name="price" class="form-control">
+                                    <option value="">Chọn giá</option>
+                                    {% for value, label in price_ranges %}
+                                        <option value="{{ value }}">{{ label }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-sm-2">
+                                <select name="category" class="form-control">
+                                    <option value="">Danh mục</option>
+                                    {% for c in categories %}
+                                        <option value="{{ c.id }}">{{ c.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-sm-3">
+                                <select name="brand" class="form-control">
+                                    <option value="">Thương hiệu</option>
+                                    {% for b in brands %}
+                                        <option value="{{ b.id }}">{{ b.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-sm-2">
+                                <select name="status" class="form-control">
+                                    <option value="">Trạng thái</option>
+                                    <option value="0">New</option>
+                                    <option value="1">Sale</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div style="margin-bottom:25px;">
+                            <button type="submit" class="btn btn-default" style="background:#fe980f; color:#fff; border:0;"><i class="fa fa-search"></i> Search</button>
+                            <a href="#" id="search-reset" class="btn btn-link">Xóa lọc</a>
+                        </div>
+                    </form>
+
+                    {# khung kết quả: lần đầu Django đổ sẵn tất cả sản phẩm, sau đó AJAX thay nội dung #}
+                    <div id="search-results">
+                        {{ results_html|safe }}
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script src="{% static 'js/search.js' %}"></script>
+{% endblock %}
