@@ -26,7 +26,10 @@
                     <div class="single-widget">
                         <h2>Tài khoản</h2>
                         <ul class="nav nav-pills nav-stacked">
-                            {% if user.is_authenticated %}
+                            {# admin: link trang quản trị | member: các trang tài khoản | khách: đăng nhập, đăng ký #}
+                            {% if user.is_superuser or user.is_staff %}
+                                <li><a href="{% url 'admin:index' %}">Trang quản trị</a></li>
+                            {% elif user.is_authenticated %}
                                 <li><a href="{% url 'account_update' %}">Cập nhật thông tin</a></li>
                                 <li><a href="{% url 'my_products' %}">Sản phẩm của tôi</a></li>
                                 <li><a href="{% url 'product_create' %}">Thêm sản phẩm</a></li>

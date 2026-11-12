@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+{# Quản lý - Sửa thông tin 1 member (chỉ superuser). Mật khẩu bỏ trống = giữ nguyên #}
+{% block title %}Sửa user{% endblock %}
+
+{% block content %}
+<section>
+    <div class="container" style="padding:40px 0;">
+        <h2 class="text-center" style="margin-bottom:30px;">QUẢN LÝ</h2>
+        <div class="row">
+            <div class="col-sm-3">
+                {% include 'users/admin_sidebar.html' %}
+            </div>
+            <div class="col-sm-9">
+                <div style="background:#fff; padding:30px; box-shadow:0 0 10px rgba(0,0,0,0.1);">
+                    <h3 style="margin-top:0;">Sửa user <small>{{ member.username }} (#{{ member.id }})</small></h3>
+                    <form method="POST">
+                        {% csrf_token %}
+                        <div class="row">
+                            <div class="col-sm-6 form-group">
+                                <label>Email</label>
+                                <input type="email" name="email" class="form-control" value="{{ form.email }}" required>
+                            </div>
+                            <div class="col-sm-6 form-group">
+                                <label>Số điện thoại</label>
+                                <input type="text" name="phone" class="form-control" value="{{ form.phone }}">
+                            </div>
+                            <div class="col-sm-6 form-group">
+                                <label>First name</label>
+                                <input type="text" name="first_name" class="form-control" value="{{ form.first_name }}">
+                            </div>
+                            <div class="col-sm-6 form-group">
+                                <label>Last name</label>
+                                <input type="text" name="last_name" class="form-control" value="{{ form.last_name }}">
+                            </div>
+                            <div class="col-sm-12 form-group">
+                                <label>Địa chỉ</label>
+                                <input type="text" name="address" class="form-control" value="{{ form.address }}">
+                            </div>
+                            <div class="col-sm-6 form-group">
+                                <label>Quốc gia</label>
+                                <select name="id_country" class="form-control">
+                                    <option value="">-- Chưa chọn --</option>
+                                    {% for c in countries %}
+                                        <option value="{{ c.id }}" {% if form.id_country == c.id|stringformat:'s' %}selected{% endif %}>{{ c.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-sm-6 form-group">
+                                <label>Trạng thái</label>
+                                <select name="is_active" class="form-control">
+                                    <option value="1" {% if form.is_active == '1' %}selected{% endif %}>Hoạt động</option>
+                                    <option value="0" {% if form.is_active == '0' %}selected{% endif %}>Khóa (không đăng nhập được)</option>
+                                </select>
+                            </div>
+                            <div class="col-sm-12 form-group">
+                                <label>Mật khẩu mới</label>
+                                <input type="password" name="password" class="form-control" placeholder="Bỏ trống nếu không đổi (ít nhất 6 ký tự)" autocomplete="new-password">
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary" style="margin:0;">Cập nhật</button>
+                        <a href="{% url 'list_users' %}" class="btn btn-default">Quay lại</a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

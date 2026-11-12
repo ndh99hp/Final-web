@@ -5,14 +5,19 @@
 {% block content %}
 <section>
     <div class="container" style="padding:40px 0;">
-        <h2 class="text-center" style="margin-bottom:30px;">ACCOUNT</h2>
+        {# is_admin_page = True: admin đang sửa sản phẩm của người khác (trang quản lý) #}
+        <h2 class="text-center" style="margin-bottom:30px;">{% if is_admin_page %}QUẢN LÝ{% else %}ACCOUNT{% endif %}</h2>
         <div class="row">
             <div class="col-sm-3">
-                {% include 'users/account_sidebar.html' %}
+                {% if is_admin_page %}
+                    {% include 'users/admin_sidebar.html' %}
+                {% else %}
+                    {% include 'users/account_sidebar.html' %}
+                {% endif %}
             </div>
             <div class="col-sm-9">
                 <div style="background:#fff; padding:30px; box-shadow:0 0 10px rgba(0,0,0,0.1);">
-                    <h3 style="margin-top:0;">Sửa sản phẩm <small>#{{ product.id }}</small></h3>
+                    <h3 style="margin-top:0;">Sửa sản phẩm <small>#{{ product.id }}{% if is_admin_page %} - của {{ product.author.username }}{% endif %}</small></h3>
 
                     {% if error %}
                         <div class="alert alert-danger">{{ error }}</div>
@@ -23,7 +28,7 @@
                         {% include 'product/_product_form.html' %}
                         <button type="submit" class="btn btn-primary" style="margin:0;">Cập nhật</button>
                         <a href="{% url 'product_detail' product.id %}" class="btn btn-default">Xem trang sản phẩm</a>
-                        <a href="{% url 'my_products' %}" class="btn btn-default">Quay lại</a>
+                        <a href="{% if is_admin_page %}{% url 'admin_products' %}{% else %}{% url 'my_products' %}{% endif %}" class="btn btn-default">Quay lại</a>
                     </form>
                 </div>
             </div>

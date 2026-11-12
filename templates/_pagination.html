@@ -1,0 +1,16 @@
+{# Phân trang dùng chung cho các trang danh sách. Cần biến: page_obj, page_query (điều kiện lọc đang có, để giữ khi đổi trang) #}
+{% if page_obj.paginator.num_pages > 1 %}
+<div class="text-center">
+    <ul class="pagination">
+        {% if page_obj.has_previous %}
+            <li><a href="?{{ page_query }}{% if page_query %}&{% endif %}page={{ page_obj.previous_page_number }}">&laquo;</a></li>
+        {% endif %}
+        {% for n in page_obj.paginator.page_range %}
+            <li {% if n == page_obj.number %}class="active"{% endif %}><a href="?{{ page_query }}{% if page_query %}&{% endif %}page={{ n }}">{{ n }}</a></li>
+        {% endfor %}
+        {% if page_obj.has_next %}
+            <li><a href="?{{ page_query }}{% if page_query %}&{% endif %}page={{ page_obj.next_page_number }}">&raquo;</a></li>
+        {% endif %}
+    </ul>
+</div>
+{% endif %}

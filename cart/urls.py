@@ -8,4 +8,6 @@ urlpatterns = [
     path('cart/add/', views.add_to_cart, name='add_to_cart'),
     path('cart/update/', views.update_cart, name='update_cart'),
     path('checkout/', views.checkout, name='checkout'),
+    # trang quản lý (admin): lịch sử mua hàng của tất cả member
+    path('manage/history/', views.admin_history, name='admin_history'),
 ]

@@ -9,7 +9,7 @@ from django.contrib import messages
 from django.template.loader import render_to_string
 from django.core.paginator import Paginator
 from django.db.models import Case, Count, DecimalField, F, Max, Q, When
-from django.contrib.auth.decorators import login_required
+from users.decorators import member_required, is_admin_account, superuser_required
 from django.core.files.storage import default_storage
 from .models import Product, Category, Brand
 
@@ -158,7 +158,8 @@ def products_with_final_price():
 # Trang /shop/: xem + lọc + sắp xếp sản phẩm.
 # Ví dụ: /shop/?q=ao&category=1&brand=2&price=0,300&sort=price_asc&page=2
 # q = từ khóa | category, brand = id | price = "thấp nhất,cao nhất" | sort = kiểu sắp xếp | page = số trang
-def product_list(request):
+# Hàm này lọc sản phẩm và trả về dữ liệu (context) cho template. Dùng chung cho trang /shop/ và AJAX của thanh kéo giá
+def shop_context(request):
     products = products_with_final_price()
 
     q = request.GET.get('q', '').strip()
@@ -223,7 +224,7 @@ def product_list(request):
     for key, label, field in sort_choices:
         sort_options.append({'label': label, 'url': build_url(filters, sort=key, page=''), 'selected': key == sort})
 
-    return render(request, 'product/product_list.html', {
+    return {
         'page_obj': page_obj,
         'total': page_obj.paginator.count,
         'categories': categories,
@@ -240,7 +241,20 @@ def product_list(request):
         'slider_max': slider_max,
         'slider_min_now': slider_min_now,
         'slider_max_now': slider_max_now,
-    })
+        'current_url': build_url(filters),   # link /shop/?... ứng với điều kiện đang lọc
+    }
+
+
+def product_list(request):
+    return render(request, 'product/product_list.html', shop_context(request))
+
+
+# AJAX của thanh kéo giá (file static/js/shop.js gọi khi thả chuột):
+# lọc giống hệt trang /shop/, nhưng chỉ trả về phần danh sách sản phẩm dạng JSON {html, total, url}
+def product_list_ajax(request):
+    context = shop_context(request)
+    html = render_to_string('product/_shop_results.html', context, request=request)
+    return JsonResponse({'html': html, 'total': context['total'], 'url': context['current_url']})
 
 
 # ---------- Tìm kiếm nâng cao (menu "Tìm kiếm nâng cao") ----------
@@ -315,9 +329,9 @@ def search_advanced_ajax(request):
     return JsonResponse({'html': html, 'total': total})
 
 
-# Trang thêm sản phẩm. @login_required = chưa đăng nhập thì chuyển về trang login
+# Trang thêm sản phẩm. @member_required = chưa đăng nhập thì chuyển về trang login, tài khoản admin thì bị chặn
 # GET: hiện form trống | POST: kiểm tra dữ liệu rồi lưu vào database
-@login_required
+@member_required
 def product_create(request):
     error = ''
     if request.method == 'POST':
@@ -347,7 +361,7 @@ def product_create(request):
 
 
 # Trang 'Sản phẩm của tôi': chỉ lấy sản phẩm do user đang đăng nhập đăng. Có tìm theo tên + phân trang
-@login_required
+@member_required
 def my_products(request):
     products = Product.objects.filter(author=request.user).order_by('-id')
     q = request.GET.get('q', '').strip()
@@ -361,11 +375,16 @@ def my_products(request):
     })
 
 
-# Trang sửa sản phẩm: hình cũ (trừ hình bị tick xóa) + hình mới <= 3 hình
-@login_required
+# Trang sửa sản phẩm (member): chỉ lấy sản phẩm của chính user đang đăng nhập
+@member_required
 def edit_product(request, product_id):
-    # chỉ lấy sản phẩm của chính user đang đăng nhập
     product = get_object_or_404(Product, id=product_id, author=request.user)
+    return edit_product_page(request, product, is_admin_page=False)
+
+
+# Phần xử lý form sửa dùng chung cho member (edit_product) và admin (admin_edit_product)
+# hình cũ (trừ hình bị tick xóa) + hình mới <= 3 hình
+def edit_product_page(request, product, is_admin_page):
     error = ''
     delete_images = []
     # form = dữ liệu hiện trong các ô: lúc mới mở là dữ liệu trong database, khi bị lỗi thì giữ lại cái vừa nhập
@@ -408,9 +427,12 @@ def edit_product(request, product_id):
             for name in delete_images:
                 default_storage.delete(name)
             messages.success(request, 'Đã cập nhật sản phẩm "' + product.title + '" thành công')
+            if is_admin_page:
+                return redirect('admin_products')
             return redirect('my_products')
 
     return render(request, 'product/edit_product.html', {
+        'is_admin_page': is_admin_page,     # admin: đổi menu bên trái + nút Quay lại
         'product': product,
         'categories': Category.objects.all(),
         'brands': Brand.objects.all(),
@@ -421,16 +443,55 @@ def edit_product(request, product_id):
 
 
 # Xóa sản phẩm: chỉ nhận POST (nút Xóa trong form), GET thì không làm gì
-@login_required
+@member_required
 def delete_product(request, product_id):
     product = get_object_or_404(Product, id=product_id, author=request.user)
     if request.method == 'POST':
         title = product.title
-        for name in product.get_images():      # xóa luôn file hình của sản phẩm
-            default_storage.delete(name)
-        product.delete()
+        product.delete_with_images()            # xóa sản phẩm + file hình (models.py)
         messages.success(request, 'Đã xóa sản phẩm "' + title + '"')
     return redirect('my_products')
+
+
+# ---------- Trang quản lý (admin): list product ----------
+# Tất cả sản phẩm của mọi member. Tìm theo tên sản phẩm (q) và theo tên member (member)
+# author__username__icontains: đi từ bảng product sang bảng user qua khóa ngoại author (giống JOIN trong SQL)
+# select_related: lấy luôn user, danh mục, hãng trong cùng 1 câu SQL (không phải hỏi database từng dòng)
+@superuser_required
+def admin_products(request):
+    products = Product.objects.select_related('author', 'category', 'brand').order_by('-id')
+    q = request.GET.get('q', '').strip()
+    member = request.GET.get('member', '').strip()
+    if q:
+        products = products.filter(title__icontains=q)
+    if member:
+        products = products.filter(author__username__icontains=member)
+    page_obj = Paginator(products, 10).get_page(request.GET.get('page'))
+    return render(request, 'product/admin_products.html', {
+        'page_obj': page_obj,
+        'q': q,
+        'member': member,
+        'page_query': urlencode({k: v for k, v in {'q': q, 'member': member}.items() if v}),
+    })
+
+
+# Admin sửa bất kỳ sản phẩm nào (dùng chung form với member)
+@superuser_required
+def admin_edit_product(request, product_id):
+    product = get_object_or_404(Product, id=product_id)
+    return edit_product_page(request, product, is_admin_page=True)
+
+
+# Admin xóa bất kỳ sản phẩm nào (chỉ nhận POST)
+@superuser_required
+def admin_delete_product(request, product_id):
+    product = get_object_or_404(Product, id=product_id)
+    if request.method == 'POST':
+        title = product.title
+        owner = product.author.username
+        product.delete_with_images()
+        messages.success(request, 'Đã xóa sản phẩm "' + title + '" của user ' + owner)
+    return redirect('admin_products')
 
 
 # Trang chi tiết 1 sản phẩm (ai cũng xem được). Không có id thì báo lỗi 404
@@ -446,8 +507,8 @@ def product_detail(request, product_id):
     related_groups = [related[i:i + 3] for i in range(0, len(related), 3)]
 
     categories, brands = sidebar_data({})
-    # chủ sản phẩm mới thấy nút Sửa / Xóa
-    is_owner = request.user.is_authenticated and product.author_id == request.user.id
+    # chủ sản phẩm (là member) mới thấy nút Sửa / Xóa
+    is_owner = request.user.is_authenticated and product.author_id == request.user.id and not is_admin_account(request.user)
 
     return render(request, 'product/product_detail.html', {
         'product': product,

@@ -1,0 +1,44 @@
+{# Phần kết quả của trang /shop/: tiêu đề + sắp xếp + lưới sản phẩm + phân trang #}
+{# Được include trong product_list.html và được AJAX của thanh kéo giá (product_list_ajax) trả về mỗi lần kéo #}
+    <h2 class="title text-center">Sản phẩm ({{ total }})</h2>
+
+    {# thanh thông tin + sắp xếp #}
+    <div class="col-sm-12" style="margin-bottom:20px;">
+        <span class="pull-left" style="padding-top:6px; color:#696763;">
+            {% if total %}Hiển thị {{ page_obj.start_index }} - {{ page_obj.end_index }} / {{ total }} sản phẩm{% endif %}
+            {% if q %}&nbsp;cho từ khóa <b>"{{ q }}"</b>{% endif %}
+        </span>
+        <div class="pull-right">
+            <label style="font-weight:normal; margin-right:5px;">Sắp xếp:</label>
+            <select onchange="window.location = this.value;" style="padding:5px;">
+                {% for o in sort_options %}
+                    <option value="{{ o.url }}" {% if o.selected %}selected{% endif %}>{{ o.label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+
+    {% for p in page_obj %}
+        {% include 'product/_product_card.html' %}
+    {# cứ 3 sản phẩm thì xuống dòng, tránh bị lệch hàng do chiều cao khác nhau #}
+    {% if forloop.counter|divisibleby:3 %}<div class="clearfix"></div>{% endif %}
+    {% empty %}
+    <p class="text-center">Không tìm thấy sản phẩm nào.</p>
+    {% endfor %}
+
+    {# ===== Phân trang ===== #}
+    {% if page_obj.paginator.num_pages > 1 %}
+    <div class="col-sm-12 text-center">
+        <ul class="pagination">
+            {% if page_obj.has_previous %}
+                <li><a href="?{{ page_query }}{% if page_query %}&{% endif %}page={{ page_obj.previous_page_number }}">&laquo;</a></li>
+            {% endif %}
+            {% for n in page_obj.paginator.page_range %}
+                <li {% if n == page_obj.number %}class="active"{% endif %}><a href="?{{ page_query }}{% if page_query %}&{% endif %}page={{ n }}">{{ n }}</a></li>
+            {% endfor %}
+            {% if page_obj.has_next %}
+                <li><a href="?{{ page_query }}{% if page_query %}&{% endif %}page={{ page_obj.next_page_number }}">&raquo;</a></li>
+            {% endif %}
+        </ul>
+    </div>
+    {% endif %}

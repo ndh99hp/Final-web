@@ -1,52 +1,86 @@
 {% extends 'base.html' %}
-{# Danh sách user (chỉ superuser) #}
+{# Quản lý - Danh sách user (chỉ superuser): tìm, lọc admin/member, phân trang, nút Sửa / Xóa cho member #}
 {% load static %}
-
-{% block title %}Danh sách User{% endblock %}
+{% block title %}Danh sách user{% endblock %}
 
 {% block content %}
 <section>
-    <div class="container" style="padding: 40px 0;">
+    <div class="container" style="padding:40px 0;">
+        <h2 class="text-center" style="margin-bottom:30px;">QUẢN LÝ</h2>
         <div class="row">
-            <div class="col-sm-12">
-                <h2>Danh sách người dùng</h2>
-                <a href="{% url 'register_superuser' %}" class="btn btn-primary" style="margin-bottom:15px;">
-                    <i class="fa fa-plus"></i> Tạo Superuser mới
-                </a>
-                <table class="table table-bordered">
+            <div class="col-sm-3">
+                {% include 'users/admin_sidebar.html' %}
+            </div>
+            <div class="col-sm-9">
+                <div class="clearfix" style="margin-bottom:15px;">
+                    <h3 class="pull-left" style="margin:0;">Danh sách user ({{ page_obj.paginator.count }})</h3>
+                    <a href="{% url 'register_superuser' %}" class="btn btn-primary pull-right" style="margin:0;"><i class="fa fa-plus"></i> Tạo superuser</a>
+                </div>
+
+                <form method="GET" class="form-inline" style="margin-bottom:15px;">
+                    <input type="text" name="q" value="{{ q }}" class="form-control" placeholder="Tìm theo username / email" style="width:250px;">
+                    <select name="role" class="form-control">
+                        <option value="">Tất cả</option>
+                        <option value="admin" {% if role == 'admin' %}selected{% endif %}>Admin</option>
+                        <option value="member" {% if role == 'member' %}selected{% endif %}>Member</option>
+                    </select>
+                    <button type="submit" class="btn btn-default"><i class="fa fa-search"></i> Tìm</button>
+                    {% if q or role %}<a href="{% url 'list_users' %}" class="btn btn-link">Xóa tìm kiếm</a>{% endif %}
+                </form>
+
+                <div class="table-responsive">
+                <table class="table table-bordered table-hover" style="background:#fff;">
                     <thead>
                         <tr>
                             <th>ID</th>
                             <th>Username</th>
                             <th>Email</th>
+                            <th>Quyền</th>
                             <th>Level</th>
-                            <th>Quốc gia</th>
-                            <th>Superuser?</th>
+                            <th>Số SP</th>
+                            <th>Trạng thái</th>
                             <th>Ngày tạo</th>
+                            <th style="min-width:140px;">Hành động</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {% for u in users %}
-                        <tr>
-                            <td>{{ u.id }}</td>
-                            <td>{{ u.username }}</td>
-                            <td>{{ u.email }}</td>
-                            <td>{{ u.get_level_display }}</td>
-                            <td>{{ u.id_country|default:"—" }}</td>
-                            <td>
-                                {% if u.is_superuser %}
-                                    <span class="label label-success">Có</span>
-                                {% else %}
-                                    <span class="label label-default">Không</span>
-                                {% endif %}
-                            </td>
-                            <td>{{ u.date_joined|date:"d/m/Y" }}</td>
-                        </tr>
-                        {% empty %}
-                        <tr><td colspan="7">Chưa có user nào.</td></tr>
-                        {% endfor %}
+                    {% for u in page_obj %}
+                    <tr>
+                        <td>{{ u.id }}</td>
+                        <td>{{ u.username }}</td>
+                        <td>{{ u.email|default:'-' }}</td>
+                        <td>
+                            {% if u.is_superuser or u.is_staff %}
+                                <span class="label label-danger">Admin</span>
+                            {% else %}
+                                <span class="label label-success">Member</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ u.get_level_display }}</td>
+                        <td>{% if u.total_products %}<a href="{% url 'admin_products' %}?member={{ u.username|urlencode }}">{{ u.total_products }}</a>{% else %}0{% endif %}</td>
+                        <td>{% if u.is_active %}Hoạt động{% else %}<span class="text-danger">Bị khóa</span>{% endif %}</td>
+                        <td>{{ u.date_joined|date:'d/m/Y' }}</td>
+                        <td>
+                            {# admin chỉ sửa / xóa được member, không đụng tới tài khoản admin #}
+                            {% if u.is_superuser or u.is_staff %}
+                                <span class="text-muted">-</span>
+                            {% else %}
+                                <a href="{% url 'admin_edit_user' u.id %}" class="btn btn-default btn-sm" style="margin:0;"><i class="fa fa-edit"></i> Sửa</a>
+                                <form method="POST" action="{% url 'admin_delete_user' u.id %}" style="display:inline;" onsubmit="return confirm('Xóa user {{ u.username|escapejs }}? Tất cả sản phẩm của user này cũng sẽ bị xóa.');">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-danger btn-sm" style="margin:0;"><i class="fa fa-trash"></i> Xóa</button>
+                                </form>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="9" class="text-center" style="padding:30px;">Không tìm thấy user nào.</td></tr>
+                    {% endfor %}
                     </tbody>
                 </table>
+                </div>
+
+                {% include '_pagination.html' %}
             </div>
         </div>
     </div>

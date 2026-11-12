@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+{# Quản lý - Tất cả sản phẩm (chỉ superuser): tìm theo tên sản phẩm + tên member, phân trang, Sửa / Xóa mọi sản phẩm #}
+{% load static %}
+{% block title %}Danh sách sản phẩm{% endblock %}
+
+{% block content %}
+<section>
+    <div class="container" style="padding:40px 0;">
+        <h2 class="text-center" style="margin-bottom:30px;">QUẢN LÝ</h2>
+        <div class="row">
+            <div class="col-sm-3">
+                {% include 'users/admin_sidebar.html' %}
+            </div>
+            <div class="col-sm-9">
+                <h3 style="margin:0 0 15px;">Danh sách sản phẩm ({{ page_obj.paginator.count }})</h3>
+
+                <form method="GET" class="form-inline" style="margin-bottom:15px;">
+                    <input type="text" name="q" value="{{ q }}" class="form-control" placeholder="Tên sản phẩm" style="width:200px;">
+                    <input type="text" name="member" value="{{ member }}" class="form-control" placeholder="Tên member (username)" style="width:200px;">
+                    <button type="submit" class="btn btn-default"><i class="fa fa-search"></i> Tìm</button>
+                    {% if q or member %}<a href="{% url 'admin_products' %}" class="btn btn-link">Xóa tìm kiếm</a>{% endif %}
+                </form>
+
+                <div class="table-responsive">
+                <table class="table table-bordered table-hover" style="background:#fff;">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Hình</th>
+                            <th>Tên</th>
+                            <th>Người đăng</th>
+                            <th>Danh mục / Hãng</th>
+                            <th>Giá</th>
+                            <th>Ngày đăng</th>
+                            <th style="min-width:170px;">Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for p in page_obj %}
+                    <tr>
+                        <td>{{ p.id }}</td>
+                        <td>
+                            {% if p.first_image %}
+                                <img src="{{ MEDIA_URL }}{{ p.first_image }}" alt="" style="width:60px; height:60px; object-fit:cover;">
+                            {% else %}
+                                <img src="{% static 'images/home/product1.jpg' %}" alt="" style="width:60px; height:60px; object-fit:cover; opacity:.5;">
+                            {% endif %}
+                        </td>
+                        <td>{{ p.title }}<br>{% if p.status == 1 %}<span class="label label-danger">SALE</span>{% else %}<span class="label label-success">NEW</span>{% endif %}</td>
+                        <td>
+                            <a href="?member={{ p.author.username|urlencode }}">{{ p.author.username }}</a>
+                            {% if p.author.is_superuser or p.author.is_staff %}<br><span class="label label-default">Admin</span>{% endif %}
+                        </td>
+                        <td>{{ p.category|default:'-' }} / {{ p.brand|default:'-' }}</td>
+                        <td>
+                            {% if p.status == 1 %}
+                                <b style="color:#fe980f;">${{ p.sale }}</b><br><del class="text-muted">${{ p.price }}</del>
+                            {% else %}
+                                <b style="color:#fe980f;">${{ p.price }}</b>
+                            {% endif %}
+                        </td>
+                        <td>{{ p.created_at|date:'d/m/Y' }}</td>
+                        <td>
+                            <a href="{% url 'product_detail' p.id %}" class="btn btn-default btn-sm" style="margin:0;"><i class="fa fa-eye"></i></a>
+                            <a href="{% url 'admin_edit_product' p.id %}" class="btn btn-default btn-sm" style="margin:0;"><i class="fa fa-edit"></i> Sửa</a>
+                            <form method="POST" action="{% url 'admin_delete_product' p.id %}" style="display:inline;" onsubmit="return confirm('Xóa sản phẩm này của {{ p.author.username|escapejs }}? Các hình của sản phẩm cũng sẽ bị xóa.');">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-danger btn-sm" style="margin:0;"><i class="fa fa-trash"></i> Xóa</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="8" class="text-center" style="padding:30px;">Không tìm thấy sản phẩm nào.</td></tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+                </div>
+
+                {% include '_pagination.html' %}
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

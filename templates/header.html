@@ -16,12 +16,17 @@
                 <div class="col-md-8 clearfix">
                     <div class="shop-menu clearfix pull-right">
                         <ul class="nav navbar-nav">
-                            {% if user.is_authenticated %}
+                            {# phân quyền: admin (is_superuser / is_staff) thấy menu quản trị, member thấy menu tài khoản #}
+                            {% if user.is_superuser or user.is_staff %}
+                                <li><a href="{% url 'admin:index' %}"><i class="fa fa-user"></i> Xin chào, {{ user.username }} (Admin)</a></li>
+                                <li><a href="{% url 'admin:index' %}"><i class="fa fa-dashboard"></i> Trang quản trị</a></li>
+                                {% if user.is_superuser %}
+                                    {# các trang quản lý: danh sách user, sản phẩm, lịch sử mua hàng (/manage/...) #}
+                                    <li><a href="{% url 'list_users' %}" {% if page == 'list_users' or page == 'admin_edit_user' or page == 'admin_products' or page == 'admin_edit_product' or page == 'admin_history' or page == 'register_superuser' %}class="active"{% endif %}><i class="fa fa-users"></i> Quản lý</a></li>
+                                {% endif %}
+                            {% elif user.is_authenticated %}
                                 <li><a href="{% url 'account_update' %}" {% if page == 'account_update' %}class="active"{% endif %}><i class="fa fa-user"></i> Xin chào, {{ user.username }}</a></li>
                                 <li><a href="{% url 'my_products' %}" {% if page == 'my_products' or page == 'edit_product' %}class="active"{% endif %}><i class="fa fa-list"></i> Sản phẩm của tôi</a></li>
-                                {% if user.is_superuser %}
-                                    <li><a href="{% url 'list_users' %}" {% if page == 'list_users' %}class="active"{% endif %}><i class="fa fa-users"></i> Quản lý user</a></li>
-                                {% endif %}
                             {% endif %}
                             <li><a href="{% url 'checkout' %}" {% if page == 'checkout' %}class="active"{% endif %}><i class="fa fa-crosshairs"></i> Thanh toán</a></li>
                             {# id="cart-counter": AJAX 'thêm vào giỏ' (static/js/cart.js) cập nhật số này. Chưa có giỏ thì hiện 0 #}
@@ -61,11 +66,11 @@
                                 <a href="#" {% if page == 'product_list' or page == 'product_detail' or page == 'product_create' or page == 'my_products' or page == 'edit_product' or page == 'cart' or page == 'checkout' %}class="active"{% endif %}>Cửa hàng <i class="fa fa-angle-down"></i></a>
                                 <ul role="menu" class="sub-menu">
                                     <li><a href="{% url 'product_list' %}">Tất cả sản phẩm</a></li>
-                                    {% if user.is_authenticated %}
+                                    {% if not user.is_authenticated %}
+                                        <li><a href="{% url 'login' %}">Đăng nhập</a></li>
+                                    {% elif not user.is_superuser and not user.is_staff %}
                                         <li><a href="{% url 'my_products' %}">Sản phẩm của tôi</a></li>
                                         <li><a href="{% url 'product_create' %}">Thêm sản phẩm</a></li>
-                                    {% else %}
-                                        <li><a href="{% url 'login' %}">Đăng nhập</a></li>
                                     {% endif %}
                                     <li><a href="{% url 'cart' %}">Giỏ hàng</a></li>
                                     <li><a href="{% url 'checkout' %}">Thanh toán</a></li>

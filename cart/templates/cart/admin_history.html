@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+{# Quản lý - Lịch sử mua hàng (chỉ superuser): thống kê theo member + danh sách tất cả đơn hàng #}
+{% block title %}Lịch sử mua hàng{% endblock %}
+
+{% block content %}
+<section>
+    <div class="container" style="padding:40px 0;">
+        <h2 class="text-center" style="margin-bottom:30px;">QUẢN LÝ</h2>
+        <div class="row">
+            <div class="col-sm-3">
+                {% include 'users/admin_sidebar.html' %}
+            </div>
+            <div class="col-sm-9">
+                <h3 style="margin:0 0 15px;">Lịch sử mua hàng</h3>
+                <p>Tổng cộng: <b>{{ summary.orders }}</b> đơn hàng, doanh thu <b style="color:#fe980f;">${{ summary.total|default:0|floatformat:2 }}</b></p>
+
+                {# ===== Phần 1: các member đã mua hàng (gom theo user) ===== #}
+                <h4>Các member đã mua hàng</h4>
+                <div class="table-responsive">
+                <table class="table table-bordered table-hover" style="background:#fff;">
+                    <thead>
+                        <tr><th>Member</th><th>Số đơn</th><th>Tổng tiền đã mua</th><th>Lần mua gần nhất</th><th></th></tr>
+                    </thead>
+                    <tbody>
+                    {% for m in members %}
+                    <tr {% if user_id and m.user_id|stringformat:'s' == user_id %}class="warning"{% endif %}>
+                        <td>{% if m.user__username %}{{ m.user__username }}{% else %}<span class="text-muted">(user đã bị xóa)</span>{% endif %}</td>
+                        <td>{{ m.orders }}</td>
+                        <td><b style="color:#fe980f;">${{ m.total|floatformat:2 }}</b></td>
+                        <td>{{ m.last_order|date:'d/m/Y H:i' }}</td>
+                        <td>{% if m.user_id %}<a href="?user={{ m.user_id }}">Xem các đơn</a>{% endif %}</td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="5" class="text-center" style="padding:20px;">Chưa có ai mua hàng.</td></tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+                </div>
+
+                {# ===== Phần 2: tất cả đơn hàng ===== #}
+                <h4 style="margin-top:30px;">
+                    Danh sách đơn hàng ({{ page_obj.paginator.count }})
+                    {% if filter_user %}<small>của {{ filter_user.username }}</small>{% endif %}
+                </h4>
+                <form method="GET" class="form-inline" style="margin-bottom:15px;">
+                    {% if user_id %}<input type="hidden" name="user" value="{{ user_id }}">{% endif %}
+                    <input type="text" name="q" value="{{ q }}" class="form-control" placeholder="Tên / email / SĐT / username" style="width:260px;">
+                    <button type="submit" class="btn btn-default"><i class="fa fa-search"></i> Tìm</button>
+                    {% if q or user_id %}<a href="{% url 'admin_history' %}" class="btn btn-link">Xem tất cả</a>{% endif %}
+                </form>
+
+                <div class="table-responsive">
+                <table class="table table-bordered table-hover" style="background:#fff;">
+                    <thead>
+                        <tr><th>Đơn</th><th>Ngày</th><th>Tài khoản</th><th>Người nhận</th><th>Sản phẩm</th><th>Tổng</th></tr>
+                    </thead>
+                    <tbody>
+                    {% for h in page_obj %}
+                    <tr>
+                        <td>#{{ h.id }}</td>
+                        <td>{{ h.created_at|date:'d/m/Y H:i' }}</td>
+                        <td>{% if h.user %}{{ h.user.username }}{% else %}<span class="text-muted">(đã xóa)</span>{% endif %}</td>
+                        <td>{{ h.name }}<br><small>{{ h.email }}<br>{{ h.phone }}</small></td>
+                        <td><small>{{ h.items|linebreaksbr }}</small></td>
+                        <td><b style="color:#fe980f;">${{ h.price }}</b></td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="6" class="text-center" style="padding:20px;">Không có đơn hàng nào.</td></tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+                </div>
+
+                {% include '_pagination.html' %}
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

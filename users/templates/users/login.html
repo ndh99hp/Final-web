@@ -17,7 +17,10 @@
                         <input type="password" name="password" class="form-control" placeholder="Mật khẩu" required style="margin-bottom:15px;">
                         <button type="submit" class="btn btn-primary btn-block">Đăng nhập</button>
                     </form>
-                    <p class="text-center" style="margin-top:15px;">Chưa có tài khoản? <a href="{% url 'register' %}">Đăng ký</a></p>
+                    <p class="text-center" style="margin-top:15px;"><a href="{% url 'forgot_password' %}">Quên mật khẩu?</a></p>
+                    <p class="text-center">Chưa có tài khoản? <a href="{% url 'register' %}">Đăng ký</a></p>
+                    {# phân quyền: trang này dành cho member, admin đăng nhập ở trang quản trị #}
+                    <p class="text-center" style="color:#999; font-size:13px;">Bạn là quản trị viên? <a href="{% url 'admin:login' %}">Đăng nhập trang quản trị</a></p>
                 </div>
             </div>
         </div>

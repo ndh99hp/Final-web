@@ -1,0 +1,34 @@
+{# Menu bên trái của các trang quản lý (/manage/...), chỉ superuser thấy #}
+{# request.resolver_match.url_name = tên url của trang hiện tại, để tô cam mục đang đứng #}
+{% with page=request.resolver_match.url_name %}
+<div class="left-sidebar">
+    <h2>Quản lý</h2>
+    <div class="panel-group category-products">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h4 class="panel-title"><a href="{% url 'list_users' %}" {% if page == 'list_users' or page == 'admin_edit_user' %}style="color:#fe980f;"{% endif %}><i class="fa fa-users"></i> Danh sách user</a></h4>
+            </div>
+        </div>
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h4 class="panel-title"><a href="{% url 'admin_products' %}" {% if page == 'admin_products' or page == 'admin_edit_product' %}style="color:#fe980f;"{% endif %}><i class="fa fa-list"></i> Danh sách sản phẩm</a></h4>
+            </div>
+        </div>
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h4 class="panel-title"><a href="{% url 'admin_history' %}" {% if page == 'admin_history' %}style="color:#fe980f;"{% endif %}><i class="fa fa-shopping-cart"></i> Lịch sử mua hàng</a></h4>
+            </div>
+        </div>
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h4 class="panel-title"><a href="{% url 'register_superuser' %}"><i class="fa fa-plus"></i> Tạo superuser</a></h4>
+            </div>
+        </div>
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h4 class="panel-title"><a href="{% url 'admin:index' %}"><i class="fa fa-dashboard"></i> Trang quản trị Django</a></h4>
+            </div>
+        </div>
+    </div>
+</div>
+{% endwith %}

@@ -7,14 +7,18 @@ from django.contrib import messages
 from django.contrib.auth import login
 from django.core.exceptions import ValidationError
 from django.core.mail import EmailMultiAlternatives
+from django.core.paginator import Paginator
 from django.core.validators import validate_email
 from django.db import transaction
+from django.db.models import Count, Max, Q, Sum
 from django.http import JsonResponse
 from django.shortcuts import render, redirect
 from django.template.loader import render_to_string
 from django.views.decorators.http import require_POST
 from product.models import Product
 from users.models import User
+from users.decorators import superuser_required
+from urllib.parse import urlencode
 from .models import History
 
 MAX_QTY = 99      # mỗi sản phẩm mua tối đa 99 cái
@@ -229,4 +233,40 @@ def checkout(request):
         'need_register': need_register,
         'form': form,
         'error': error,
+    })
+
+
+# ---------- Trang quản lý (admin): lịch sử mua hàng ----------
+# Phần 1: thống kê theo member = gom các đơn của cùng 1 user lại (SQL: GROUP BY user)
+#         values('user_id', ...) = nhóm theo user, annotate(...) = đếm số đơn, cộng tổng tiền, lấy ngày mua gần nhất
+# Phần 2: danh sách tất cả đơn hàng, tìm theo tên / email / sđt / username, bấm tên member để lọc đơn của member đó
+@superuser_required
+def admin_history(request):
+    members = (History.objects
+               .values('user_id', 'user__username')
+               .annotate(orders=Count('id'), total=Sum('price'), last_order=Max('created_at'))
+               .order_by('-total'))
+    summary = History.objects.aggregate(orders=Count('id'), total=Sum('price'))   # tổng tất cả đơn
+
+    orders = History.objects.select_related('user').order_by('-id')
+    q = request.GET.get('q', '').strip()
+    user_id = request.GET.get('user', '')
+    if q:
+        orders = orders.filter(Q(name__icontains=q) | Q(email__icontains=q) | Q(phone__icontains=q) | Q(user__username__icontains=q))
+    filter_user = None
+    if is_id(user_id):
+        orders = orders.filter(user_id=user_id)
+        filter_user = User.objects.filter(id=user_id).first()
+    else:
+        user_id = ''
+
+    page_obj = Paginator(orders, 10).get_page(request.GET.get('page'))
+    return render(request, 'cart/admin_history.html', {
+        'members': members,
+        'summary': summary,
+        'page_obj': page_obj,
+        'q': q,
+        'user_id': user_id,
+        'filter_user': filter_user,
+        'page_query': urlencode({k: v for k, v in {'q': q, 'user': user_id}.items() if v}),
     })

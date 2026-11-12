@@ -7,6 +7,8 @@ urlpatterns = [
     path('', views.home, name='home'),
     # trang xem tất cả sản phẩm (ai cũng xem được)
     path('shop/', views.product_list, name='product_list'),
+    # AJAX của thanh kéo giá ở trang /shop/ (trả về JSON)
+    path('shop/ajax/', views.product_list_ajax, name='product_list_ajax'),
     # tìm kiếm nâng cao: trang form + đường dẫn AJAX trả về kết quả (JSON)
     path('search-advanced/', views.search_advanced, name='search_advanced'),
     path('search-advanced/ajax/', views.search_advanced_ajax, name='search_advanced_ajax'),
@@ -17,4 +19,8 @@ urlpatterns = [
     path('account/add-product/', views.product_create, name='product_create'),
     path('account/edit-product/<int:product_id>/', views.edit_product, name='edit_product'),
     path('account/delete-product/<int:product_id>/', views.delete_product, name='delete_product'),
+    # trang quản lý (admin): tất cả sản phẩm, admin sửa / xóa được mọi sản phẩm
+    path('manage/products/', views.admin_products, name='admin_products'),
+    path('manage/products/<int:product_id>/edit/', views.admin_edit_product, name='admin_edit_product'),
+    path('manage/products/<int:product_id>/delete/', views.admin_delete_product, name='admin_delete_product'),
 ]

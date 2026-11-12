@@ -1,6 +1,7 @@
 # product/models.py: định nghĩa các bảng trong database (Category, Brand, Product)
 # Sau khi sửa file này phải chạy: python manage.py makemigrations && python manage.py migrate
 import json
+from django.core.files.storage import default_storage
 from django.db import models
 from users.models import User  # bảng user
 
@@ -50,6 +51,15 @@ class Product(models.Model):
         if len(list_images) > 0:
             return list_images[0]
         return ''
+
+    # Xóa sản phẩm + xóa luôn file hình trong media/products/
+    # (hình nào còn sản phẩm khác dùng chung, ví dụ hình của sản phẩm mẫu, thì giữ lại)
+    def delete_with_images(self):
+        for name in self.get_images():
+            used_by_other = Product.objects.exclude(id=self.id).filter(images__contains='"' + name + '"').exists()
+            if not used_by_other:
+                default_storage.delete(name)
+        self.delete()
 
     def __str__(self):
         return self.title
