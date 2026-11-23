@@ -2,6 +2,7 @@
 # Sau khi sửa file này phải chạy: python manage.py makemigrations && python manage.py migrate
 from django.db import models
 from users.models import User
+from product.models import Product
 
 
 class History(models.Model):
@@ -18,3 +19,19 @@ class History(models.Model):
 
     def __str__(self):
         return self.name + ' - $' + str(self.price)
+
+
+# Giỏ hàng lưu trong database: mỗi dòng = 1 sản phẩm trong giỏ của 1 user
+# (giá không lưu ở đây, lúc xem giỏ sẽ lấy giá hiện tại của sản phẩm)
+class CartItem(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    qty = models.PositiveSmallIntegerField(default=1)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        # 1 user chỉ có 1 dòng cho mỗi sản phẩm (thêm lần nữa thì cộng dồn số lượng)
+        unique_together = ('user', 'product')
+
+    def __str__(self):
+        return self.user.username + ' - ' + self.product.title + ' x' + str(self.qty)
