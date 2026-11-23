@@ -1,0 +1,35 @@
+/* app.css: chỉnh nhỏ cho phần React (giao diện chính là E-Shopper trong public/css) */
+
+/* thanh kéo giá 2 đầu (thay cho bootstrap-slider của giao diện cũ) */
+.range-wrap { position: relative; height: 30px; margin: 10px 0 5px; }
+.range-track { position: absolute; top: 12px; left: 0; right: 0; height: 6px; background: #ddd; border-radius: 3px; }
+.range-fill { position: absolute; top: 12px; height: 6px; background: #fe980f; border-radius: 3px; }
+.range-wrap input[type=range] {
+  position: absolute; left: 0; top: 0; width: 100%; height: 30px; margin: 0;
+  pointer-events: none; -webkit-appearance: none; appearance: none; background: transparent;
+}
+.range-wrap input[type=range]::-webkit-slider-runnable-track { background: transparent; }
+.range-wrap input[type=range]::-moz-range-track { background: transparent; }
+.range-wrap input[type=range]::-webkit-slider-thumb {
+  pointer-events: auto; -webkit-appearance: none; appearance: none;
+  width: 22px; height: 22px; border-radius: 50%; background: #fe980f; border: 2px solid #fff;
+  box-shadow: 0 0 3px #888; cursor: pointer; margin-top: 4px;
+}
+.range-wrap input[type=range]::-moz-range-thumb {
+  pointer-events: auto; width: 18px; height: 18px; border-radius: 50%; background: #fe980f;
+  border: 2px solid #fff; box-shadow: 0 0 3px #888; cursor: pointer;
+}
+
+.box { background: #fff; padding: 25px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); }
+.product-image-wrapper a { cursor: pointer; }
+.pagination > li > a { cursor: pointer; }
+.pagination > .active > a { background: #fe980f; border-color: #fe980f; }
+.text-orange { color: #fe980f; }
+.table-admin td, .table-admin th { vertical-align: middle !important; }
+.thumb-sm { width: 50px; height: 50px; object-fit: cover; }
+.cursor { cursor: pointer; }
+
+/* tránh nội dung dính sát footer */
+section { padding-bottom: 40px; }
+#cart_items { margin-bottom: 0; }
+.form-inline .form-control { display: inline-block; width: auto; }
